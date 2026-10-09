@@ -1130,6 +1130,42 @@ body.lang-en {
   line-height: 1.25;
 }
 
+.winner-team-members-box {
+  background: rgba(15, 23, 42, 0.7);
+  border: 1px solid rgba(165, 180, 252, 0.25);
+  border-radius: 14px;
+  padding: 0.65rem 0.85rem;
+  margin-bottom: 0.85rem;
+  text-align: left;
+}
+
+.winner-team-members-box.hidden {
+  display: none;
+}
+
+.winner-team-members-title {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #a5b4fc;
+  margin-bottom: 0.4rem;
+}
+
+.winner-team-members-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.winner-member-chip {
+  background: rgba(99, 102, 241, 0.2);
+  border: 1px solid rgba(165, 180, 252, 0.3);
+  color: #f8fafc;
+  padding: 0.2rem 0.55rem;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
 .timer-section {
   display: flex;
   align-items: center;

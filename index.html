@@ -260,6 +260,9 @@
                 <span class="count-badge" id="generatedGroupsCountBadge">0 ក្រុម</span>
               </div>
               <div class="results-actions">
+                <button class="sub-btn primary-glow" id="sendTeamsToWheelBtn" title="ផ្ទេរក្រុមទៅបង្វិលកងចាប់ក្រុម">
+                  <span>🎡</span> <span data-i18n="sendToGroupWheel">ផ្ទេរទៅកងចាប់ក្រុម</span>
+                </button>
                 <button class="sub-btn" id="exportTeamsCsvBtn">
                   <span>📊</span> <span data-i18n="exportCsv">Excel / CSV</span>
                 </button>
@@ -302,6 +305,12 @@
         <div class="confetti-cannon-icon">🎊</div>
         <h3 class="modal-title" data-i18n="winnerAnnounce">អបអរសាទរ! អ្នកឈ្នះគឺ</h3>
         <div class="winner-display-name" id="winnerNameDisplay">-</div>
+
+        <!-- Team members list if winning item is a team -->
+        <div class="winner-team-members-box hidden" id="winnerTeamMembersBox">
+          <div class="winner-team-members-title" data-i18n="teamMembersTitle">👥 សមាជិកក្នុងក្រុម៖</div>
+          <div class="winner-team-members-list" id="winnerTeamMembersList"></div>
+        </div>
 
         <!-- Thinking Time Countdown Timer -->
         <div class="timer-section" id="winnerTimerSection">

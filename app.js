@@ -51,6 +51,9 @@ const TRANSLATIONS = {
     namingColors: "ក្រុមពណ៌ (ក្រហម, ខៀវ, បៃតង...)",
     autoAssignRoles: "👑 បែងចែកតួនាទីក្នុងក្រុមស្វ័យប្រវត្ត (Leader, Secretary...)",
     generateTeamsNow: "បែងចែកក្រុមភ្លាមៗ",
+    sendToGroupWheel: "ផ្ទេរទៅកងចាប់ក្រុម",
+    teamMembersTitle: "👥 សមាជិកក្នុងក្រុម៖",
+    teamsTransferredToast: "🎡 បានផ្ទេរក្រុមទៅកងចាប់ក្រុមរួចរាល់!",
     resultsTitle: "🎉 លទ្ធផលការបែងចែកក្រុម",
     copyResults: "ចម្លងលទ្ធផល",
     reshuffle: "ចែកម្តងទៀត",
@@ -128,6 +131,9 @@ const TRANSLATIONS = {
     namingColors: "Color Teams (Red, Blue, Green...)",
     autoAssignRoles: "👑 Auto-Assign Roles (Leader, Secretary...)",
     generateTeamsNow: "Generate Teams Now",
+    sendToGroupWheel: "Send to Group Wheel",
+    teamMembersTitle: "👥 Group Members:",
+    teamsTransferredToast: "🎡 Teams transferred to Group Wheel!",
     resultsTitle: "🎉 Grouping Results",
     copyResults: "Copy Results",
     reshuffle: "Re-shuffle",
@@ -242,6 +248,7 @@ let groupsList = [
   "ក្រុមទី ៤ (Team Delta)", "ក្រុមទី ៥ (Team Echo)", "ក្រុមទី ៦ (Team Foxtrot)"
 ];
 
+let generatedTeamsMap = {}; // Maps team title -> array of member names
 let winnersHistory = [];
 let currentWinnerIndex = -1;
 
@@ -444,6 +451,11 @@ function setActiveItems(items) {
     groupsList = items;
   } else {
     namesList = items;
+    const teamInput = document.getElementById("teamNamesInput");
+    if (teamInput) {
+      teamInput.value = namesList.join("\n");
+      updateTeamMemberCount();
+    }
   }
   updateTextareaFromState();
   updateItemCount();
@@ -668,6 +680,22 @@ function showWinnerModal(name) {
   const nameDisplay = document.getElementById("winnerNameDisplay");
   nameDisplay.textContent = name;
 
+  // If spinning groups and this group has known members, display them beautifully
+  const teamMembersBox = document.getElementById("winnerTeamMembersBox");
+  const teamMembersList = document.getElementById("winnerTeamMembersList");
+  if (teamMembersBox && teamMembersList) {
+    if (currentMode === "spin-groups" && generatedTeamsMap[name] && generatedTeamsMap[name].length > 0) {
+      const members = generatedTeamsMap[name];
+      teamMembersList.innerHTML = members.map((m, mIdx) => `
+        <span class="winner-member-chip">${escapeHtml(m)} ${getMemberRoleBadge(mIdx)}</span>
+      `).join("");
+      teamMembersBox.classList.remove("hidden");
+    } else {
+      teamMembersBox.classList.add("hidden");
+      teamMembersList.innerHTML = "";
+    }
+  }
+
   startCountdown(30);
   rollNewChallenge();
 
@@ -807,8 +835,28 @@ function generateTeams() {
   });
 
   currentGeneratedTeams = groups;
+  generatedTeamsMap = {};
+  groups.forEach((teamMembers, idx) => {
+    const title = getGroupTitle(idx, groups.length);
+    generatedTeamsMap[title] = [...teamMembers];
+  });
+
+  // Automatically sync with groupsList so the wheel is ready to spin immediately
+  groupsList = Object.keys(generatedTeamsMap);
+
   renderTeamCards(groups);
   launchConfetti();
+}
+
+function sendTeamsToGroupWheel() {
+  if (currentGeneratedTeams.length === 0) {
+    generateTeams();
+  }
+  if (Object.keys(generatedTeamsMap).length === 0) return;
+
+  groupsList = Object.keys(generatedTeamsMap);
+  switchMode("spin-groups");
+  showToastNotification(TRANSLATIONS[currentLang].teamsTransferredToast);
 }
 
 function getGroupTitle(idx, total) {
@@ -1014,7 +1062,14 @@ function shareTeamsToTelegram() {
 
 function shareWinnerToTelegram() {
   const winnerName = document.getElementById("winnerNameDisplay").textContent.trim();
-  const message = `🎉 អបអរសាទរ! អ្នកឈ្នះការចាប់ឆ្នោត AC Mart Lucky Wheel គឺ៖\n\n🏆 ${winnerName}\n\n👉 ចូលរួមលេងបន្ត៖`;
+  let message = `🎉 អបអរសាទរ! អ្នកឈ្នះការចាប់ឆ្នោត AC Mart Lucky Wheel គឺ៖\n\n🏆 ${winnerName}`;
+
+  if (currentMode === "spin-groups" && generatedTeamsMap[winnerName] && generatedTeamsMap[winnerName].length > 0) {
+    const members = generatedTeamsMap[winnerName];
+    message += `\n\n👥 សមាជិកក្នុងក្រុម៖\n` + members.map(m => `• ${m}`).join("\n");
+  }
+
+  message += `\n\n👉 ចូលរួមលេងបន្ត៖`;
   openTelegramShare(message, APP_URL);
 }
 
@@ -1082,6 +1137,7 @@ function backupAllData() {
     savedClasses,
     namesList,
     groupsList,
+    generatedTeamsMap,
     winnersHistory,
     exportDate: new Date().toISOString()
   };
@@ -1106,6 +1162,7 @@ function restoreAllData(file) {
       if (data.savedClasses) savedClasses = data.savedClasses;
       if (Array.isArray(data.namesList)) namesList = data.namesList;
       if (Array.isArray(data.groupsList)) groupsList = data.groupsList;
+      if (data.generatedTeamsMap) generatedTeamsMap = data.generatedTeamsMap;
       if (Array.isArray(data.winnersHistory)) winnersHistory = data.winnersHistory;
 
       localStorage.setItem("lucky_wheel_classes", JSON.stringify(savedClasses));
@@ -1255,6 +1312,11 @@ document.addEventListener("DOMContentLoaded", () => {
       groupsList = rawLines;
     } else {
       namesList = rawLines;
+      const teamInput = document.getElementById("teamNamesInput");
+      if (teamInput) {
+        teamInput.value = namesList.join("\n");
+        updateTeamMemberCount();
+      }
     }
     updateItemCount();
     drawWheel();
@@ -1356,7 +1418,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Team Maker Controls
   const teamInput = document.getElementById("teamNamesInput");
-  teamInput.addEventListener("input", updateTeamMemberCount);
+  teamInput.addEventListener("input", () => {
+    updateTeamMemberCount();
+    const rawMembers = teamInput.value.split("\n").map(s => s.trim()).filter(s => s.length > 0);
+    namesList = rawMembers;
+    if (currentMode === "spin-names") {
+      updateTextareaFromState();
+      updateItemCount();
+      drawWheel();
+    }
+  });
 
   document.getElementById("syncFromWheelBtn").addEventListener("click", () => {
     teamInput.value = namesList.join("\n");
@@ -1370,6 +1441,12 @@ document.addEventListener("DOMContentLoaded", () => {
       [members[i], members[j]] = [members[j], members[i]];
     }
     teamInput.value = members.join("\n");
+    namesList = members;
+    if (currentMode === "spin-names") {
+      updateTextareaFromState();
+      updateItemCount();
+      drawWheel();
+    }
   });
 
   const divideByGroupsBtn = document.getElementById("divideByGroupsBtn");
@@ -1397,6 +1474,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
   document.getElementById("generateTeamsBtn").addEventListener("click", generateTeams);
   document.getElementById("reShuffleTeamsBtn").addEventListener("click", generateTeams);
+  const sendToWheelBtn = document.getElementById("sendTeamsToWheelBtn");
+  if (sendToWheelBtn) {
+    sendToWheelBtn.addEventListener("click", sendTeamsToGroupWheel);
+  }
   document.getElementById("copyTeamsResultBtn").addEventListener("click", copyTeamsToClipboard);
   document.getElementById("exportTeamsCsvBtn").addEventListener("click", exportTeamsToCsv);
   document.getElementById("shareTeamsTelegramBtn").addEventListener("click", shareTeamsToTelegram);
