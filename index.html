@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lucky Wheel & Group Maker | បង្វិលកង ចាប់ឆ្នោត & ចែកក្រុម</title>
-  <meta name="description" content="កម្មវិធីបង្វិលកងចាប់ឆ្នោត ជ្រើសរើសឈ្មោះ ជ្រើសរើសក្រុម និងបែងចែកក្រុមដោយចៃដន្យ - Lucky Wheel and Random Team Generator">
+  <meta name="description" content="កម្មវិធីបង្វិលកងចាប់ឆ្នោត ជ្រើសរើសឈ្មោះ ជ្រើសរើសក្រុម និងបែងចែកក្រុមដោយចៃដន្យ - Lucky Wheel and Random Team Generator by AC Mart">
   <!-- Google Fonts: Kantumruy Pro (Khmer) and Outfit (English) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -56,6 +56,11 @@
           </button>
         </div>
 
+        <!-- QR Code Share Button -->
+        <button class="icon-btn" id="qrShareBtn" title="QR Code & ចែករំលែក | QR Code & Share">
+          <span>📱</span>
+        </button>
+
         <!-- Sound Toggle -->
         <button class="icon-btn" id="soundToggleBtn" title="បិទ/បើកសម្លេង | Sound Toggle">
           <span id="soundIcon">🔊</span>
@@ -89,9 +94,11 @@
               <div class="wheel-pointer"></div>
             </div>
             <canvas id="wheelCanvas" width="600" height="600"></canvas>
+            <!-- Center Spin Button with AC Mart Logo -->
             <button class="spin-center-btn" id="spinCenterBtn">
+              <img src="ac-mart-logo.png" alt="AC Mart" class="spin-center-logo">
               <span class="spin-text" data-i18n="spinBtn">បង្វិល</span>
-              <span class="spin-shortcut">SPACE / ENTER</span>
+              <span class="spin-shortcut">SPACE</span>
             </button>
           </div>
 
@@ -147,7 +154,10 @@
           <div class="history-section">
             <div class="history-header">
               <h3 data-i18n="historyTitle">🏆 ប្រវត្តិអ្នកឈ្នះ</h3>
-              <button class="history-clear-link" id="clearHistoryBtn" data-i18n="clearHistory">លុបប្រវត្តិ</button>
+              <div class="history-header-actions">
+                <button class="history-mini-btn" id="exportHistoryCsvBtn" title="ទាញយកជា Excel / CSV">📊 CSV</button>
+                <button class="history-clear-link" id="clearHistoryBtn" data-i18n="clearHistory">លុបប្រវត្តិ</button>
+              </div>
             </div>
             <div class="history-list" id="historyList">
               <div class="empty-history" data-i18n="noWinnersYet">មិនទាន់មានប្រវត្តិទេ</div>
@@ -243,6 +253,12 @@
                 <span class="count-badge" id="generatedGroupsCountBadge">0 ក្រុម</span>
               </div>
               <div class="results-actions">
+                <button class="sub-btn" id="exportTeamsCsvBtn">
+                  <span>📊</span> <span data-i18n="exportCsv">Excel / CSV</span>
+                </button>
+                <button class="sub-btn telegram-btn" id="shareTeamsTelegramBtn">
+                  <span>✈️</span> <span>Telegram</span>
+                </button>
                 <button class="sub-btn" id="copyTeamsResultBtn">
                   <span>📋</span> <span data-i18n="copyResults">ចម្លងលទ្ធផល</span>
                 </button>
@@ -316,6 +332,13 @@
           </div>
         </div>
 
+        <!-- Share Winner to Telegram -->
+        <div class="winner-telegram-row">
+          <button class="telegram-share-chip" id="shareWinnerTelegramBtn">
+            <span>✈️</span> <span data-i18n="shareWinnerTelegram">ចែករំលែកអ្នកឈ្នះទៅ Telegram</span>
+          </button>
+        </div>
+
         <p class="modal-subtitle" data-i18n="winnerPrompt">តើអ្នកចង់ដកឈ្មោះនេះចេញពីកង ឬរក្សាទុក?</p>
 
         <div class="modal-actions">
@@ -324,6 +347,28 @@
           </button>
           <button class="modal-btn primary" id="keepWinnerBtn">
             <span>✅</span> <span data-i18n="keepWinner">រក្សាទុកក្នុងកង</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- QR CODE SHARE MODAL DIALOG -->
+    <div class="modal-overlay hidden" id="qrModalOverlay">
+      <div class="qr-modal-card">
+        <button class="modal-close-corner" id="closeQrModalBtn">✕</button>
+        <img src="ac-mart-logo.png" alt="AC Mart" class="qr-brand-logo">
+        <h3 data-i18n="scanQrTitle">ស្កេន QR Code ដើម្បីបើកកម្មវិធី</h3>
+        <p class="qr-url-text">luckywheel-ac.vercel.app</p>
+        <div class="qr-image-wrap">
+          <img id="qrCodeImg" src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=https://luckywheel-ac.vercel.app&color=4f46e5" alt="QR Code" width="200" height="200">
+        </div>
+        <p class="qr-subtext" data-i18n="scanQrSubtitle">ប្រើកាមេរ៉ាទូរស័ព្ទដើម្បីបើកលើទូរស័ព្ទ ឬ iPad</p>
+        <div class="qr-modal-actions">
+          <button class="sub-btn telegram-btn" id="shareAppTelegramBtn">
+            <span>✈️</span> <span data-i18n="shareViaTelegram">ផ្ញើតាម Telegram</span>
+          </button>
+          <button class="sub-btn" id="copyAppUrlBtn">
+            <span>🔗</span> <span data-i18n="copyLink">ចម្លងតំណភ្ជាប់</span>
           </button>
         </div>
       </div>

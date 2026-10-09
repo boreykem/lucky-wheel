@@ -427,6 +427,20 @@ body.lang-en {
   user-select: none;
 }
 
+.spin-center-logo {
+  width: clamp(26px, 32%, 38px);
+  height: auto;
+  max-height: 32px;
+  object-fit: contain;
+  margin-bottom: 2px;
+  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.35));
+  transition: transform 0.2s ease;
+}
+
+.spin-center-btn:hover .spin-center-logo {
+  transform: scale(1.12);
+}
+
 .spin-center-btn:hover {
   transform: translate(-50%, -50%) scale(1.06);
   box-shadow: 0 0 35px rgba(99, 102, 241, 0.8), inset 0 2px 8px rgba(255, 255, 255, 1);
@@ -1384,6 +1398,158 @@ body.lang-en {
   font-size: 1.05rem;
   color: #a5b4fc;
   font-weight: bold;
+}
+
+/* ==========================================================================
+   TELEGRAM, EXPORT & QR SHARE STYLES
+   ========================================================================== */
+.sub-btn.telegram-btn {
+  background: rgba(34, 158, 217, 0.15);
+  border-color: rgba(34, 158, 217, 0.4);
+  color: #38bdf8;
+}
+
+.sub-btn.telegram-btn:hover {
+  background: rgba(34, 158, 217, 0.35);
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+.history-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.history-mini-btn {
+  background: rgba(99, 102, 241, 0.2);
+  border: 1px solid rgba(165, 180, 252, 0.3);
+  color: #a5b4fc;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.15rem 0.45rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+
+.history-mini-btn:hover {
+  background: rgba(99, 102, 241, 0.4);
+  color: #ffffff;
+}
+
+.winner-telegram-row {
+  margin-bottom: 1rem;
+}
+
+.telegram-share-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  width: 100%;
+  padding: 0.65rem 1rem;
+  background: linear-gradient(135deg, #0088cc 0%, #006699 100%);
+  border: none;
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 0.88rem;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 4px 14px rgba(0, 136, 204, 0.35);
+  font-family: inherit;
+}
+
+.telegram-share-chip:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(0, 136, 204, 0.5);
+}
+
+/* QR Modal Card */
+.qr-modal-card {
+  background: linear-gradient(145deg, #1e1b4b 0%, #0f172a 100%);
+  border: 2px solid rgba(165, 180, 252, 0.35);
+  border-radius: 28px;
+  padding: 2.25rem 2rem;
+  max-width: 400px;
+  width: 90%;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8), 0 0 40px rgba(99, 102, 241, 0.5);
+  position: relative;
+  box-sizing: border-box;
+  animation: modalBounce 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.modal-close-corner {
+  position: absolute;
+  top: 1rem;
+  right: 1.25rem;
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  color: var(--text-sub);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  font-size: 1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.modal-close-corner:hover {
+  background: rgba(239, 68, 68, 0.35);
+  color: #ffffff;
+}
+
+.qr-brand-logo {
+  height: 46px;
+  width: auto;
+  object-fit: contain;
+  margin-bottom: 0.75rem;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.4));
+}
+
+.qr-modal-card h3 {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #f8fafc;
+  margin-bottom: 0.25rem;
+}
+
+.qr-url-text {
+  font-size: 0.9rem;
+  color: #38bdf8;
+  font-weight: 700;
+  margin-bottom: 1.1rem;
+}
+
+.qr-image-wrap {
+  display: inline-block;
+  background: #ffffff;
+  padding: 12px;
+  border-radius: 18px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.45);
+  margin-bottom: 1rem;
+}
+
+.qr-image-wrap img {
+  display: block;
+  border-radius: 8px;
+}
+
+.qr-subtext {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  margin-bottom: 1.25rem;
+}
+
+.qr-modal-actions {
+  display: flex;
+  gap: 0.75rem;
 }
 
 /* ==========================================================================

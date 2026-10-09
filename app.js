@@ -1,11 +1,11 @@
 /**
  * Lucky Wheel & Team Generator
- * Pedagogically Enhanced for Teachers & Professors
+ * Enhanced for AC Mart & Educational Workflows
  * Bilingual: Khmer (Kantumruy Pro) & English (Outfit)
  */
 
 // ==========================================================================
-// 1. BILINGUAL TRANSLATION DICTIONARY & PEDAGOGY TEXTS
+// 1. BILINGUAL TRANSLATION DICTIONARY
 // ==========================================================================
 const TRANSLATIONS = {
   km: {
@@ -54,6 +54,7 @@ const TRANSLATIONS = {
     resultsTitle: "🎉 លទ្ធផលការបែងចែកក្រុម",
     copyResults: "ចម្លងលទ្ធផល",
     reshuffle: "ចែកម្តងទៀត",
+    exportCsv: "Excel / CSV",
     winnerAnnounce: "អបអរសាទរ! អ្នកឈ្នះគឺ",
     winnerPrompt: "តើអ្នកចង់ដកឈ្មោះនេះចេញពីកង ឬរក្សាទុក?",
     removeWinner: "ដកឈ្មោះចេញ",
@@ -77,7 +78,12 @@ const TRANSLATIONS = {
     roleTimer: "⏱️ មើលម៉ោង",
     roleMember: "🤝 សមាជិក",
     friendHelpNotice: "🤝 មិត្តរួមថ្នាក់ដែលត្រូវបានជ្រើសរើសជួយគឺ៖ ",
-    allRightsReserved: "រក្សាសិទ្ធិគ្រប់យ៉ាងដោយ AC Mart · All Rights Reserved"
+    allRightsReserved: "រក្សាសិទ្ធិគ្រប់យ៉ាងដោយ AC Mart · All Rights Reserved",
+    shareWinnerTelegram: "ផ្ញើអ្នកឈ្នះទៅ Telegram",
+    scanQrTitle: "ស្កេន QR Code ដើម្បីបើកកម្មវិធី",
+    scanQrSubtitle: "ប្រើកាមេរ៉ាទូរស័ព្ទដើម្បីបើកលើទូរស័ព្ទ ឬ iPad",
+    shareViaTelegram: "ផ្ញើតាម Telegram",
+    copyLink: "ចម្លងតំណភ្ជាប់"
   },
   en: {
     appTitle: "Lucky Spin Wheel",
@@ -125,6 +131,7 @@ const TRANSLATIONS = {
     resultsTitle: "🎉 Grouping Results",
     copyResults: "Copy Results",
     reshuffle: "Re-shuffle",
+    exportCsv: "Excel / CSV",
     winnerAnnounce: "Congratulations! The Winner Is",
     winnerPrompt: "Would you like to remove or keep this name in the wheel?",
     removeWinner: "Remove Name",
@@ -148,9 +155,16 @@ const TRANSLATIONS = {
     roleTimer: "⏱️ Timekeeper",
     roleMember: "🤝 Member",
     friendHelpNotice: "🤝 Selected helper peer is: ",
-    allRightsReserved: "AC Mart · All Rights Reserved"
+    allRightsReserved: "AC Mart · All Rights Reserved",
+    shareWinnerTelegram: "Share Winner to Telegram",
+    scanQrTitle: "Scan QR Code to Open App",
+    scanQrSubtitle: "Point your phone camera to open on mobile or tablet",
+    shareViaTelegram: "Share via Telegram",
+    copyLink: "Copy Link"
   }
 };
+
+const APP_URL = "https://luckywheel-ac.vercel.app";
 
 // Pedagogical Classroom Challenges
 const PEDAGOGICAL_CHALLENGES = {
@@ -216,7 +230,6 @@ let currentLang = localStorage.getItem("lucky_wheel_lang") || "km";
 let currentMode = "spin-names";
 let soundEnabled = true;
 
-// Saved classes collection in localStorage
 let savedClasses = JSON.parse(localStorage.getItem("lucky_wheel_classes") || "{}");
 
 let namesList = [
@@ -246,9 +259,10 @@ let isCountdownPaused = false;
 
 // Audio Context
 let audioCtx = null;
+let drumrollInterval = null;
 
 // ==========================================================================
-// 3. SOUND SYNTHESIS
+// 3. ENHANCED SOUND SYNTHESIS (TICKS, DRUMROLL & CROWD APPLAUSE)
 // ==========================================================================
 function initAudio() {
   if (!audioCtx) {
@@ -270,22 +284,54 @@ function playTickSound() {
     const gain = audioCtx.createGain();
 
     osc.type = "sine";
-    osc.frequency.setValueAtTime(650, audioCtx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(300, audioCtx.currentTime + 0.04);
+    osc.frequency.setValueAtTime(680, audioCtx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(280, audioCtx.currentTime + 0.035);
 
-    gain.gain.setValueAtTime(0.25, audioCtx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.04);
+    gain.gain.setValueAtTime(0.28, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.035);
 
     osc.connect(gain);
     gain.connect(audioCtx.destination);
 
     osc.start();
-    osc.stop(audioCtx.currentTime + 0.04);
+    osc.stop(audioCtx.currentTime + 0.035);
   } catch (e) {
     console.warn("Audio error:", e);
   }
 }
 
+// Suspense Drumroll Effect while wheel is spinning
+function startDrumroll() {
+  if (!soundEnabled) return;
+  stopDrumroll();
+  initAudio();
+  if (!audioCtx) return;
+
+  drumrollInterval = setInterval(() => {
+    try {
+      if (audioCtx.state === "suspended") audioCtx.resume();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = "triangle";
+      osc.frequency.setValueAtTime(140 + Math.random() * 40, audioCtx.currentTime);
+      gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.045);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.045);
+    } catch (e) {}
+  }, 75);
+}
+
+function stopDrumroll() {
+  if (drumrollInterval) {
+    clearInterval(drumrollInterval);
+    drumrollInterval = null;
+  }
+}
+
+// Grand Winner Fanfare & Crowd Cheer
 function playWinSound() {
   if (!soundEnabled) return;
   try {
@@ -293,24 +339,43 @@ function playWinSound() {
     if (!audioCtx) return;
     if (audioCtx.state === "suspended") audioCtx.resume();
 
-    const notes = [523.25, 659.25, 783.99, 1046.5];
+    // 1. Brass chords fanfare
+    const notes = [523.25, 659.25, 783.99, 1046.5, 1318.5];
     notes.forEach((freq, idx) => {
       const osc = audioCtx.createOscillator();
       const gain = audioCtx.createGain();
-      const startTime = audioCtx.currentTime + idx * 0.1;
+      const startTime = audioCtx.currentTime + idx * 0.09;
 
       osc.type = "triangle";
       osc.frequency.setValueAtTime(freq, startTime);
 
-      gain.gain.setValueAtTime(0.3, startTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.45);
+      gain.gain.setValueAtTime(0.35, startTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.6);
 
       osc.connect(gain);
       gain.connect(audioCtx.destination);
 
       osc.start(startTime);
-      osc.stop(startTime + 0.45);
+      osc.stop(startTime + 0.6);
     });
+
+    // 2. Crowd Cheer / Clap simulation
+    for (let c = 0; c < 8; c++) {
+      const clapOsc = audioCtx.createOscillator();
+      const clapGain = audioCtx.createGain();
+      const clapTime = audioCtx.currentTime + 0.3 + c * 0.08 + Math.random() * 0.03;
+
+      clapOsc.type = "sine";
+      clapOsc.frequency.setValueAtTime(800 + Math.random() * 400, clapTime);
+      clapGain.gain.setValueAtTime(0.08, clapTime);
+      clapGain.gain.exponentialRampToValueAtTime(0.001, clapTime + 0.05);
+
+      clapOsc.connect(clapGain);
+      clapGain.connect(audioCtx.destination);
+
+      clapOsc.start(clapTime);
+      clapOsc.stop(clapTime + 0.05);
+    }
   } catch (e) {
     console.warn("Win audio error:", e);
   }
@@ -509,6 +574,7 @@ function spinWheel() {
 
   initAudio();
   isSpinning = true;
+  startDrumroll();
 
   document.getElementById("spinCenterBtn").disabled = true;
   document.getElementById("spinActionBtn").disabled = true;
@@ -550,6 +616,7 @@ function spinWheel() {
     if (progress < 1) {
       requestAnimationFrame(animate);
     } else {
+      stopDrumroll();
       isSpinning = false;
       document.getElementById("spinCenterBtn").disabled = false;
       document.getElementById("spinActionBtn").disabled = false;
@@ -581,7 +648,7 @@ function finishSpin() {
 function launchConfetti(originY = 0.6) {
   if (typeof confetti === "function") {
     confetti({
-      particleCount: 80,
+      particleCount: 85,
       spread: 70,
       origin: { y: originY }
     });
@@ -601,10 +668,7 @@ function showWinnerModal(name) {
   const nameDisplay = document.getElementById("winnerNameDisplay");
   nameDisplay.textContent = name;
 
-  // Start 30s countdown timer
   startCountdown(30);
-
-  // Roll a pedagogical challenge
   rollNewChallenge();
 
   modal.classList.remove("hidden");
@@ -707,6 +771,8 @@ function renderHistory() {
 // ==========================================================================
 // 8. TEAM MAKER GENERATOR WITH COOPERATIVE ROLES
 // ==========================================================================
+let currentGeneratedTeams = [];
+
 function generateTeams() {
   const inputVal = document.getElementById("teamNamesInput").value;
   const members = inputVal
@@ -719,7 +785,6 @@ function generateTeams() {
     return;
   }
 
-  // Shuffle array
   const shuffled = [...members];
   for (let i = shuffled.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -741,6 +806,7 @@ function generateTeams() {
     groups[index % numGroups].push(member);
   });
 
+  currentGeneratedTeams = groups;
   renderTeamCards(groups);
   launchConfetti();
 }
@@ -835,7 +901,112 @@ function copyTeamsToClipboard() {
 }
 
 // ==========================================================================
-// 9. CLASSROOM MANAGER (SAVE / LOAD CLASSES)
+// 9. EXCEL / CSV EXPORT WITH UTF-8 BOM
+// ==========================================================================
+function downloadCsv(filename, csvContent) {
+  // UTF-8 BOM (\uFEFF) ensures Khmer Unicode renders cleanly in Microsoft Excel
+  const blob = new Blob(["\uFEFF" + csvContent], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function exportTeamsToCsv() {
+  if (currentGeneratedTeams.length === 0) {
+    generateTeams();
+  }
+  if (currentGeneratedTeams.length === 0) return;
+
+  let csv = "Group,Member Name,Role\n";
+  currentGeneratedTeams.forEach((teamMembers, idx) => {
+    const groupName = getGroupTitle(idx, currentGeneratedTeams.length);
+    teamMembers.forEach((member, mIdx) => {
+      const roles = [
+        TRANSLATIONS[currentLang].roleLeader,
+        TRANSLATIONS[currentLang].roleSecretary,
+        TRANSLATIONS[currentLang].roleSpeaker,
+        TRANSLATIONS[currentLang].roleTimer
+      ];
+      const role = roles[mIdx] || TRANSLATIONS[currentLang].roleMember;
+      csv += `"${groupName}","${member.replace(/"/g, '""')}","${role}"\n`;
+    });
+  });
+
+  downloadCsv(`AC-Mart-Teams-${new Date().toISOString().slice(0, 10)}.csv`, csv);
+}
+
+function exportHistoryToCsv() {
+  if (winnersHistory.length === 0) {
+    alert(TRANSLATIONS[currentLang].noWinnersYet);
+    return;
+  }
+
+  let csv = "Rank,Winner Name,Time,Stars\n";
+  winnersHistory.forEach((item, idx) => {
+    csv += `"#${winnersHistory.length - idx}","${item.name.replace(/"/g, '""')}","${item.time}","${item.stars || 0}"\n`;
+  });
+
+  downloadCsv(`AC-Mart-Winners-${new Date().toISOString().slice(0, 10)}.csv`, csv);
+}
+
+// ==========================================================================
+// 10. TELEGRAM SHARING INTEGRATION
+// ==========================================================================
+function shareTeamsToTelegram() {
+  const cards = document.querySelectorAll(".team-card");
+  if (cards.length === 0) {
+    generateTeams();
+  }
+  let message = `🎯 *លទ្ធផលការបែងចែកក្រុម (AC Mart Lucky Wheel)*\n\n`;
+  cards.forEach(card => {
+    const title = card.querySelector(".team-card-title").textContent.trim();
+    const members = Array.from(card.querySelectorAll(".team-member-item"))
+      .map(li => `• ${li.textContent.trim().replace(/\s+/g, ' ')}`)
+      .join("\n");
+    message += `👥 *${title}*:\n${members}\n\n`;
+  });
+
+  const tgUrl = `https://t.me/share/url?url=${encodeURIComponent(APP_URL)}&text=${encodeURIComponent(message)}`;
+  window.open(tgUrl, "_blank");
+}
+
+function shareWinnerToTelegram() {
+  const winnerName = document.getElementById("winnerNameDisplay").textContent.trim();
+  const message = `🎉 *អបអរសាទរ! អ្នកឈ្នះការចាប់ឆ្នោត AC Mart Lucky Wheel គឺ៖*\n\n🏆 *${winnerName}*\n\n👉 ចូលរួមលេងបន្ត៖ ${APP_URL}`;
+  const tgUrl = `https://t.me/share/url?url=${encodeURIComponent(APP_URL)}&text=${encodeURIComponent(message)}`;
+  window.open(tgUrl, "_blank");
+}
+
+function shareAppViaTelegram() {
+  const message = `🎡 សូមអញ្ជើញចូលរួមកម្មវិធីបង្វិលកង ចាប់ឆ្នោត & ចែកក្រុម ដោយឥតគិតថ្លៃ៖`;
+  const tgUrl = `https://t.me/share/url?url=${encodeURIComponent(APP_URL)}&text=${encodeURIComponent(message)}`;
+  window.open(tgUrl, "_blank");
+}
+
+// ==========================================================================
+// 11. QR CODE MODAL MANAGEMENT
+// ==========================================================================
+function openQrModal() {
+  document.getElementById("qrModalOverlay").classList.remove("hidden");
+}
+
+function closeQrModal() {
+  document.getElementById("qrModalOverlay").classList.add("hidden");
+}
+
+function copyAppUrl() {
+  navigator.clipboard.writeText(APP_URL).then(() => {
+    alert(TRANSLATIONS[currentLang].copiedAlert);
+  });
+}
+
+// ==========================================================================
+// 12. CLASSROOM MANAGER (SAVE / LOAD CLASSES)
 // ==========================================================================
 function populateClassSelector() {
   const select = document.getElementById("classSelector");
@@ -870,7 +1041,7 @@ function onClassSelected(className) {
 }
 
 // ==========================================================================
-// 10. HELPERS & EVENT HANDLERS
+// 13. HELPERS & EVENT HANDLERS
 // ==========================================================================
 function escapeHtml(str) {
   return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -913,7 +1084,7 @@ function updateTeamMemberCount() {
 }
 
 // ==========================================================================
-// 11. INITIALIZATION
+// 14. INITIALIZATION
 // ==========================================================================
 document.addEventListener("DOMContentLoaded", () => {
   wheelCanvas = document.getElementById("wheelCanvas");
@@ -954,6 +1125,15 @@ document.addEventListener("DOMContentLoaded", () => {
     } else {
       document.exitFullscreen().catch(() => {});
     }
+  });
+
+  // QR Modal Buttons
+  document.getElementById("qrShareBtn").addEventListener("click", openQrModal);
+  document.getElementById("closeQrModalBtn").addEventListener("click", closeQrModal);
+  document.getElementById("copyAppUrlBtn").addEventListener("click", copyAppUrl);
+  document.getElementById("shareAppTelegramBtn").addEventListener("click", shareAppViaTelegram);
+  document.getElementById("qrModalOverlay").addEventListener("click", (e) => {
+    if (e.target.id === "qrModalOverlay") closeQrModal();
   });
 
   // Spin buttons
@@ -1022,11 +1202,12 @@ document.addEventListener("DOMContentLoaded", () => {
     e.target.value = "";
   });
 
-  // History clear
+  // History Actions
   document.getElementById("clearHistoryBtn").addEventListener("click", () => {
     winnersHistory = [];
     renderHistory();
   });
+  document.getElementById("exportHistoryCsvBtn").addEventListener("click", exportHistoryToCsv);
 
   // Pedagogical Timer Buttons
   document.getElementById("timerToggleBtn").addEventListener("click", () => {
@@ -1045,6 +1226,7 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("rollChallengeBtn").addEventListener("click", rollNewChallenge);
   document.getElementById("askFriendBtn").addEventListener("click", triggerAskFriend);
   document.getElementById("awardStarBtn").addEventListener("click", triggerAwardStar);
+  document.getElementById("shareWinnerTelegramBtn").addEventListener("click", shareWinnerToTelegram);
 
   // Winner Modal Action Buttons
   document.getElementById("removeWinnerBtn").addEventListener("click", () => {
@@ -1109,6 +1291,8 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("generateTeamsBtn").addEventListener("click", generateTeams);
   document.getElementById("reShuffleTeamsBtn").addEventListener("click", generateTeams);
   document.getElementById("copyTeamsResultBtn").addEventListener("click", copyTeamsToClipboard);
+  document.getElementById("exportTeamsCsvBtn").addEventListener("click", exportTeamsToCsv);
+  document.getElementById("shareTeamsTelegramBtn").addEventListener("click", shareTeamsToTelegram);
 
   // Keyboard Shortcuts
   window.addEventListener("keydown", (e) => {
@@ -1120,6 +1304,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     } else if (e.code === "Escape") {
       hideWinnerModal();
+      closeQrModal();
     }
   });
 
