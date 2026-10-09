@@ -955,37 +955,72 @@ function exportHistoryToCsv() {
 }
 
 // ==========================================================================
-// 10. TELEGRAM SHARING INTEGRATION
+// 10. TELEGRAM SHARING INTEGRATION (BYPASSES ISP T.ME BLOCKS)
 // ==========================================================================
+function showToastNotification(msg) {
+  const toast = document.getElementById("toastNotification");
+  if (!toast) return;
+  toast.textContent = msg;
+  toast.classList.remove("hidden");
+  setTimeout(() => {
+    toast.classList.add("hidden");
+  }, 4500);
+}
+
+function openTelegramShare(message, url) {
+  const fullText = `${message}\n\n🔗 ${url}`;
+
+  // 1. Copy to clipboard immediately so user can easily Paste (Ctrl+V) anywhere
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(fullText).catch(() => {});
+  }
+
+  // 2. Native app protocol: directly opens Telegram App on Windows & Mobile (bypasses ISP t.me block!)
+  const nativeAppUrl = `tg://msg_url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(message)}`;
+  const webAltUrl = `https://telegram.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(message)}`;
+
+  // Show friendly feedback toast
+  showToastNotification(
+    currentLang === "km"
+      ? "📋 បានចម្លងសារ & កំពុងបើក Telegram! (លោកគ្រូអាចចុច Paste/Ctrl+V ក្នុង Telegram បាន)"
+      : "📋 Copied text & opening Telegram! (You can also Paste with Ctrl+V)"
+  );
+
+  // Trigger native Telegram app directly
+  window.location.href = nativeAppUrl;
+
+  // Fallback to web link after a short delay
+  setTimeout(() => {
+    window.open(webAltUrl, "_blank");
+  }, 1000);
+}
+
 function shareTeamsToTelegram() {
   const cards = document.querySelectorAll(".team-card");
   if (cards.length === 0) {
     generateTeams();
   }
-  let message = `🎯 *លទ្ធផលការបែងចែកក្រុម (AC Mart Lucky Wheel)*\n\n`;
+  let message = `🎯 លទ្ធផលការបែងចែកក្រុម (AC Mart Lucky Wheel)\n\n`;
   cards.forEach(card => {
     const title = card.querySelector(".team-card-title").textContent.trim();
     const members = Array.from(card.querySelectorAll(".team-member-item"))
       .map(li => `• ${li.textContent.trim().replace(/\s+/g, ' ')}`)
       .join("\n");
-    message += `👥 *${title}*:\n${members}\n\n`;
+    message += `👥 ${title}:\n${members}\n\n`;
   });
 
-  const tgUrl = `https://t.me/share/url?url=${encodeURIComponent(APP_URL)}&text=${encodeURIComponent(message)}`;
-  window.open(tgUrl, "_blank");
+  openTelegramShare(message, APP_URL);
 }
 
 function shareWinnerToTelegram() {
   const winnerName = document.getElementById("winnerNameDisplay").textContent.trim();
-  const message = `🎉 *អបអរសាទរ! អ្នកឈ្នះការចាប់ឆ្នោត AC Mart Lucky Wheel គឺ៖*\n\n🏆 *${winnerName}*\n\n👉 ចូលរួមលេងបន្ត៖ ${APP_URL}`;
-  const tgUrl = `https://t.me/share/url?url=${encodeURIComponent(APP_URL)}&text=${encodeURIComponent(message)}`;
-  window.open(tgUrl, "_blank");
+  const message = `🎉 អបអរសាទរ! អ្នកឈ្នះការចាប់ឆ្នោត AC Mart Lucky Wheel គឺ៖\n\n🏆 ${winnerName}\n\n👉 ចូលរួមលេងបន្ត៖`;
+  openTelegramShare(message, APP_URL);
 }
 
 function shareAppViaTelegram() {
   const message = `🎡 សូមអញ្ជើញចូលរួមកម្មវិធីបង្វិលកង ចាប់ឆ្នោត & ចែកក្រុម ដោយឥតគិតថ្លៃ៖`;
-  const tgUrl = `https://t.me/share/url?url=${encodeURIComponent(APP_URL)}&text=${encodeURIComponent(message)}`;
-  window.open(tgUrl, "_blank");
+  openTelegramShare(message, APP_URL);
 }
 
 // ==========================================================================
