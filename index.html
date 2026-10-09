@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lucky Wheel & Group Maker | បង្វិលកង ចាប់ឆ្នោត & ចែកក្រុម</title>
+  <meta name="description" content="កម្មវិធីបង្វិលកងចាប់ឆ្នោត ជ្រើសរើសឈ្មោះ ជ្រើសរើសក្រុម និងបែងចែកក្រុមដោយចៃដន្យ - Lucky Wheel and Random Team Generator">
+  <!-- Google Fonts: Kantumruy Pro (Khmer) and Outfit (English) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Kantumruy+Pro:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Canvas Confetti CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="lang-km">
+  <div class="app-container">
+    <!-- Top Navigation Bar -->
+    <header class="top-nav">
+      <div class="nav-left">
+        <div class="app-logo">
+          <img src="ac-mart-logo.png" alt="AC Mart Logo" class="brand-logo-img">
+          <div class="logo-text">
+            <h1 data-i18n="appTitle">បង្វិលកង ចាប់ឆ្នោត</h1>
+            <span class="logo-sub" data-i18n="appSubtitle">ជ្រើសរើសឈ្មោះ & ចែកក្រុមដោយចៃដន្យ</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="nav-center">
+        <!-- Navigation Modes / Tabs -->
+        <nav class="mode-tabs">
+          <button class="mode-btn active" data-mode="spin-names" id="tabSpinNames">
+            <span class="icon">🎯</span>
+            <span class="label" data-i18n="tabSpinNames">ចាប់ឈ្មោះ</span>
+          </button>
+          <button class="mode-btn" data-mode="spin-groups" id="tabSpinGroups">
+            <span class="icon">👥</span>
+            <span class="label" data-i18n="tabSpinGroups">ចាប់ក្រុម</span>
+          </button>
+          <button class="mode-btn" data-mode="team-maker" id="tabTeamMaker">
+            <span class="icon">🔀</span>
+            <span class="label" data-i18n="tabTeamMaker">បែងចែកក្រុម</span>
+          </button>
+        </nav>
+      </div>
+
+      <div class="nav-right">
+        <!-- Classroom Selector -->
+        <div class="class-picker-wrap">
+          <select id="classSelector" class="class-select" title="ជ្រើសរើសថ្នាក់រៀន | Select Class">
+            <option value="default" data-i18n="defaultClass">🏫 ថ្នាក់ទូទៅ (Default)</option>
+          </select>
+          <button class="icon-btn small" id="saveClassBtn" title="រក្សាទុកបញ្ជីថ្នាក់រៀន | Save current list as class">
+            <span>💾</span>
+          </button>
+        </div>
+
+        <!-- Sound Toggle -->
+        <button class="icon-btn" id="soundToggleBtn" title="បិទ/បើកសម្លេង | Sound Toggle">
+          <span id="soundIcon">🔊</span>
+        </button>
+
+        <!-- Fullscreen Toggle -->
+        <button class="icon-btn" id="fullscreenBtn" title="ពេញអេក្រង់ | Fullscreen">
+          <span>⛶</span>
+        </button>
+
+        <!-- Language Switcher Toggle -->
+        <div class="lang-switcher">
+          <button class="lang-btn active" id="langKm" data-lang="km">
+            <span class="flag">🇰🇭</span> ខ្មែរ
+          </button>
+          <button class="lang-btn" id="langEn" data-lang="en">
+            <span class="flag">🇬🇧</span> EN
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      <!-- SECTION 1 & 2: WHEEL MODES (Names & Groups) -->
+      <div class="view-panel" id="wheelViewPanel">
+        <div class="wheel-stage">
+          <!-- Wheel Canvas Container -->
+          <div class="wheel-wrapper">
+            <div class="wheel-pointer-container">
+              <div class="wheel-pointer"></div>
+            </div>
+            <canvas id="wheelCanvas" width="600" height="600"></canvas>
+            <button class="spin-center-btn" id="spinCenterBtn">
+              <span class="spin-text" data-i18n="spinBtn">បង្វិល</span>
+              <span class="spin-shortcut">SPACE / ENTER</span>
+            </button>
+          </div>
+
+          <!-- Bottom Control Bar below Wheel -->
+          <div class="wheel-actions">
+            <button class="action-btn primary-glow" id="spinActionBtn">
+              <span>🚀</span> <span data-i18n="spinNow">ចាប់ផ្តើមបង្វិល</span>
+            </button>
+            <button class="action-btn secondary" id="shuffleBtn">
+              <span>🔀</span> <span data-i18n="shuffle">ច្របល់បញ្ជី</span>
+            </button>
+            <button class="action-btn secondary" id="sortBtn">
+              <span>🔤</span> <span data-i18n="sort">រៀបតាមលំដាប់</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Sidebar / Editor for Wheel Items -->
+        <aside class="sidebar-panel">
+          <div class="sidebar-header">
+            <div class="sidebar-title-wrap">
+              <h2 id="sidebarListTitle" data-i18n="listTitleNames">បញ្ជីឈ្មោះចូលរួម</h2>
+              <span class="count-badge" id="itemCountBadge">0</span>
+            </div>
+            <div class="quick-presets">
+              <select id="presetSelect" class="preset-dropdown">
+                <option value="" disabled selected data-i18n="presetPrompt">⚡ គំរូបញ្ជី (Presets)...</option>
+                <option value="khmer-students" data-i18n="presetKhmerStudents">សិស្ស (គំរូឈ្មោះខ្មែរ)</option>
+                <option value="team-alpha" data-i18n="presetTeams">ក្រុមទី១ ដល់ ក្រុមទី៦</option>
+                <option value="lucky-numbers" data-i18n="presetNumbers">លេខរង្វាន់ (១ ដល់ ២០)</option>
+                <option value="prizes" data-i18n="presetPrizes">រង្វាន់ & ភេសជ្ជៈ</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="textarea-container">
+            <textarea id="entriesTextarea" placeholder="បញ្ចូលឈ្មោះមួយក្នុងមួយបន្ទាត់..."></textarea>
+          </div>
+
+          <div class="sidebar-toolbar">
+            <button class="sub-btn danger" id="clearBtn">
+              <span>🗑️</span> <span data-i18n="clearAll">សម្អាត</span>
+            </button>
+            <button class="sub-btn" id="copyListBtn">
+              <span>📋</span> <span data-i18n="copyList">ចម្លងបញ្ជី</span>
+            </button>
+            <button class="sub-btn" id="resetDefaultBtn">
+              <span>🔄</span> <span data-i18n="resetDefaults">កំណត់ដើម</span>
+            </button>
+          </div>
+
+          <!-- History / Past Winners -->
+          <div class="history-section">
+            <div class="history-header">
+              <h3 data-i18n="historyTitle">🏆 ប្រវត្តិអ្នកឈ្នះ</h3>
+              <button class="history-clear-link" id="clearHistoryBtn" data-i18n="clearHistory">លុបប្រវត្តិ</button>
+            </div>
+            <div class="history-list" id="historyList">
+              <div class="empty-history" data-i18n="noWinnersYet">មិនទាន់មានប្រវត្តិទេ</div>
+            </div>
+          </div>
+        </aside>
+      </div>
+
+      <!-- SECTION 3: RANDOM TEAM MAKER VIEW -->
+      <div class="view-panel hidden" id="teamMakerPanel">
+        <div class="team-maker-container">
+          <!-- Team Maker Controls -->
+          <div class="team-controls-card">
+            <div class="card-header">
+              <h2 data-i18n="teamMakerTitle">🔀 បែងចែកក្រុមដោយស្វ័យប្រវត្តិ</h2>
+              <p data-i18n="teamMakerSubtitle">បញ្ចូលឈ្មោះទាំងអស់ រួចជ្រើសរើសចំនួនក្រុមដែលអ្នកចង់បង្កើត</p>
+            </div>
+
+            <div class="team-maker-grid">
+              <!-- Left: Name input for team generator -->
+              <div class="team-input-column">
+                <div class="column-title-row">
+                  <label for="teamNamesInput" data-i18n="teamNamesLabel">បញ្ជីសមាជិកទាំងអស់</label>
+                  <span class="count-badge" id="teamMembersCountBadge">0</span>
+                </div>
+                <textarea id="teamNamesInput" placeholder="បញ្ចូលឈ្មោះសមាជិក (មួយឈ្មោះក្នុងមួយបន្ទាត់)..."></textarea>
+                <div class="team-input-actions">
+                  <button class="sub-btn" id="syncFromWheelBtn">
+                    <span>📥</span> <span data-i18n="syncFromWheel">ទាញយកពីកង</span>
+                  </button>
+                  <button class="sub-btn" id="teamShuffleInputBtn">
+                    <span>🔀</span> <span data-i18n="shuffle">ច្របល់ឈ្មោះ</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Right: Grouping Settings -->
+              <div class="team-settings-column">
+                <div class="settings-box">
+                  <label class="settings-label" data-i18n="divideMethod">របៀបបែងចែកក្រុម៖</label>
+                  <div class="segmented-control">
+                    <button class="segment-btn active" id="divideByGroupsBtn" data-divide="groups">
+                      <span data-i18n="byNumGroups">តាមចំនួនក្រុម</span>
+                    </button>
+                    <button class="segment-btn" id="divideByMembersBtn" data-divide="members">
+                      <span data-i18n="byNumMembers">តាមចំនួននាក់/ក្រុម</span>
+                    </button>
+                  </div>
+
+                  <div class="number-stepper-wrap">
+                    <label id="stepperLabel" for="divideCountInput" data-i18n="numGroupsLabel">ចំនួនក្រុមដែលចង់បាន៖</label>
+                    <div class="stepper-box">
+                      <button class="stepper-btn" id="stepperMinus">-</button>
+                      <input type="number" id="divideCountInput" min="2" max="50" value="4">
+                      <button class="stepper-btn" id="stepperPlus">+</button>
+                    </div>
+                  </div>
+
+                  <div class="naming-style-wrap">
+                    <label class="settings-label" data-i18n="groupNamingStyle">ទម្រង់ឈ្មោះក្រុម៖</label>
+                    <select id="groupNamingSelect" class="preset-dropdown">
+                      <option value="khmer-nums" data-i18n="namingKhmerNums">ក្រុមទី ១, ក្រុមទី ២...</option>
+                      <option value="english-nums" data-i18n="namingEnNums">Group 1, Group 2...</option>
+                      <option value="team-letters" data-i18n="namingLetters">Team A, Team B, Team C...</option>
+                      <option value="colors" data-i18n="namingColors">ក្រុមពណ៌ (ក្រហម, ខៀវ, បៃតង...)</option>
+                    </select>
+                  </div>
+
+                  <!-- Cooperative Learning: Auto-Assign Roles Checkbox -->
+                  <div class="role-assignment-toggle">
+                    <label class="checkbox-container">
+                      <input type="checkbox" id="autoAssignRolesCheckbox" checked>
+                      <span class="checkmark"></span>
+                      <span class="checkbox-label" data-i18n="autoAssignRoles">👑 បែងចែកតួនាទីក្នុងក្រុមស្វ័យប្រវត្ត (Leader, Secretary...)</span>
+                    </label>
+                  </div>
+
+                  <div class="team-cta-row">
+                    <button class="action-btn primary-glow full-width" id="generateTeamsBtn">
+                      <span>⚡</span> <span data-i18n="generateTeamsNow">បែងចែកក្រុមភ្លាមៗ</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Team Results Display -->
+          <div class="team-results-card" id="teamResultsSection">
+            <div class="results-header">
+              <div class="results-title-wrap">
+                <h3 data-i18n="resultsTitle">🎉 លទ្ធផលការបែងចែកក្រុម</h3>
+                <span class="count-badge" id="generatedGroupsCountBadge">0 ក្រុម</span>
+              </div>
+              <div class="results-actions">
+                <button class="sub-btn" id="copyTeamsResultBtn">
+                  <span>📋</span> <span data-i18n="copyResults">ចម្លងលទ្ធផល</span>
+                </button>
+                <button class="sub-btn" id="reShuffleTeamsBtn">
+                  <span>🔄</span> <span data-i18n="reshuffle">ចែកម្តងទៀត</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Group Cards Grid -->
+            <div class="teams-grid" id="teamsGrid">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Footer with AC Mart Copyright -->
+    <footer class="app-footer">
+      <div class="footer-content">
+        <img src="ac-mart-logo.png" alt="AC Mart Logo" class="footer-logo-img">
+        <div class="footer-text-group">
+          <p class="copyright-line">
+            <span class="copyright-symbol">©</span> <span data-i18n="allRightsReserved">រក្សាសិទ្ធិគ្រប់យ៉ាងដោយ AC Mart · All Rights Reserved</span>
+          </p>
+        </div>
+      </div>
+    </footer>
+
+    <!-- WINNER MODAL DIALOG (PEDAGOGICALLY ENHANCED) -->
+    <div class="modal-overlay hidden" id="winnerModalOverlay">
+      <div class="winner-modal-card">
+        <div class="confetti-cannon-icon">🎊</div>
+        <h3 class="modal-title" data-i18n="winnerAnnounce">អបអរសាទរ! អ្នកឈ្នះគឺ</h3>
+        <div class="winner-display-name" id="winnerNameDisplay">-</div>
+
+        <!-- Thinking Time Countdown Timer -->
+        <div class="timer-section" id="winnerTimerSection">
+          <div class="timer-badge">
+            <span class="timer-icon">⏱️</span>
+            <span class="timer-label" data-i18n="thinkingTime">ពេលគិតពិចារណា៖</span>
+            <span class="timer-clock" id="timerClockDisplay">30s</span>
+          </div>
+          <div class="timer-controls">
+            <button class="timer-chip-btn" id="timerToggleBtn">⏸️ <span data-i18n="pauseTimer">ផ្អាក</span></button>
+            <button class="timer-chip-btn" id="timerPlus15Btn">+15s</button>
+            <button class="timer-chip-btn" id="timerReset30Btn">🔄 30s</button>
+          </div>
+        </div>
+
+        <!-- Random Challenge / Question Prompt -->
+        <div class="challenge-box" id="challengeBox">
+          <div class="challenge-header">
+            <span class="challenge-icon">🎯</span>
+            <span class="challenge-title" data-i18n="challengePrompt">កិច្ចការ/សំនួរចៃដន្យ៖</span>
+            <button class="challenge-dice-btn" id="rollChallengeBtn" title="ប្តូរសំនួរថ្មី | Roll new challenge">🎲</button>
+          </div>
+          <p class="challenge-text" id="challengeTextDisplay">📖 សង្ខេបចំណុចសំខាន់នៃមេរៀន</p>
+        </div>
+
+        <!-- Psychological Safety & Gamification Buttons -->
+        <div class="pedagogy-actions-row">
+          <button class="lifeline-btn" id="askFriendBtn" title="សុំជំនួយពីមិត្តភក្តិ">
+            <span>🤝</span> <span data-i18n="askFriend">សុំជំនួយពីមិត្ត (Lifeline)</span>
+          </button>
+          <div class="stars-award-group">
+            <button class="star-chip-btn" id="awardStarBtn" title="ផ្តល់ផ្កាយលើកទឹកចិត្ត">
+              <span>⭐</span> <span data-i18n="awardStar">+1 ផ្កាយ</span>
+            </button>
+          </div>
+        </div>
+
+        <p class="modal-subtitle" data-i18n="winnerPrompt">តើអ្នកចង់ដកឈ្មោះនេះចេញពីកង ឬរក្សាទុក?</p>
+
+        <div class="modal-actions">
+          <button class="modal-btn danger" id="removeWinnerBtn">
+            <span>❌</span> <span data-i18n="removeWinner">ដកឈ្មោះចេញ</span>
+          </button>
+          <button class="modal-btn primary" id="keepWinnerBtn">
+            <span>✅</span> <span data-i18n="keepWinner">រក្សាទុកក្នុងកង</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
