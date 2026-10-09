@@ -1040,6 +1040,67 @@ function onClassSelected(className) {
   }
 }
 
+// Zero-Database Backup & Restore (.json)
+function backupAllData() {
+  const backup = {
+    version: "1.0",
+    savedClasses,
+    namesList,
+    groupsList,
+    winnersHistory,
+    exportDate: new Date().toISOString()
+  };
+  const jsonStr = JSON.stringify(backup, null, 2);
+  const blob = new Blob([jsonStr], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `luckywheel-backup-${new Date().toISOString().slice(0, 10)}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function restoreAllData(file) {
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (data.savedClasses) savedClasses = data.savedClasses;
+      if (Array.isArray(data.namesList)) namesList = data.namesList;
+      if (Array.isArray(data.groupsList)) groupsList = data.groupsList;
+      if (Array.isArray(data.winnersHistory)) winnersHistory = data.winnersHistory;
+
+      localStorage.setItem("lucky_wheel_classes", JSON.stringify(savedClasses));
+      populateClassSelector();
+      updateTextareaFromState();
+      updateItemCount();
+      renderHistory();
+      drawWheel();
+      alert(currentLang === "km" ? "បានបញ្ចូលទិន្នន័យបម្រុងទុកដោយជោគជ័យ!" : "Backup restored successfully!");
+    } catch (err) {
+      alert(currentLang === "km" ? "ឯកសារមិនត្រឹមត្រូវទេ!" : "Invalid backup file!");
+    }
+  };
+  reader.readAsText(file);
+}
+
+function checkUrlHashState() {
+  const hash = window.location.hash;
+  if (!hash || hash.length < 3) return;
+  try {
+    if (hash.startsWith("#names=")) {
+      const decoded = decodeURIComponent(hash.replace("#names=", ""));
+      const parsed = JSON.parse(decoded);
+      if (Array.isArray(parsed)) {
+        setActiveItems(parsed);
+      }
+    }
+  } catch (e) {}
+}
+
 // ==========================================================================
 // 13. HELPERS & EVENT HANDLERS
 // ==========================================================================
@@ -1106,9 +1167,20 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("tabSpinGroups").addEventListener("click", () => switchMode("spin-groups"));
   document.getElementById("tabTeamMaker").addEventListener("click", () => switchMode("team-maker"));
 
-  // Classroom selector & saver
+  // Classroom selector, saver & zero-cloud backup
   document.getElementById("classSelector").addEventListener("change", (e) => onClassSelected(e.target.value));
   document.getElementById("saveClassBtn").addEventListener("click", saveCurrentClass);
+  document.getElementById("backupDataBtn").addEventListener("click", backupAllData);
+  document.getElementById("restoreDataBtn").addEventListener("click", () => {
+    document.getElementById("restoreFileInput").click();
+  });
+  document.getElementById("restoreFileInput").addEventListener("change", (e) => {
+    if (e.target.files && e.target.files[0]) {
+      restoreAllData(e.target.files[0]);
+    }
+  });
+
+  checkUrlHashState();
 
   // Sound toggle
   const soundBtn = document.getElementById("soundToggleBtn");
