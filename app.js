@@ -683,18 +683,31 @@ function showWinnerModal(name) {
   // If spinning groups and this group has known members, display them beautifully
   const teamMembersBox = document.getElementById("winnerTeamMembersBox");
   const teamMembersList = document.getElementById("winnerTeamMembersList");
+  const teamMembersCount = document.getElementById("winnerTeamMembersCount");
   if (teamMembersBox && teamMembersList) {
     if (currentMode === "spin-groups" && generatedTeamsMap[name] && generatedTeamsMap[name].length > 0) {
       const members = generatedTeamsMap[name];
+      if (teamMembersCount) {
+        teamMembersCount.textContent = `(${members.length}${TRANSLATIONS[currentLang].membersSuffix})`;
+      }
       teamMembersList.innerHTML = members.map((m, mIdx) => `
-        <span class="winner-member-chip">${escapeHtml(m)} ${getMemberRoleBadge(mIdx)}</span>
+        <span class="winner-member-chip" title="${escapeHtml(m)}">
+          <span class="winner-member-name">${escapeHtml(m)}</span>
+          ${getMemberRoleBadge(mIdx)}
+        </span>
       `).join("");
       teamMembersBox.classList.remove("hidden");
     } else {
       teamMembersBox.classList.add("hidden");
       teamMembersList.innerHTML = "";
+      if (teamMembersCount) teamMembersCount.textContent = "";
     }
   }
+
+  // Reset scroll positions so the top is always visible upon opening
+  const modalBody = document.getElementById("winnerModalBody");
+  if (modalBody) modalBody.scrollTop = 0;
+  if (teamMembersList) teamMembersList.scrollTop = 0;
 
   startCountdown(30);
   rollNewChallenge();
@@ -1409,6 +1422,11 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   document.getElementById("keepWinnerBtn").addEventListener("click", hideWinnerModal);
+
+  const closeWinnerModalBtn = document.getElementById("closeWinnerModalBtn");
+  if (closeWinnerModalBtn) {
+    closeWinnerModalBtn.addEventListener("click", hideWinnerModal);
+  }
 
   document.getElementById("winnerModalOverlay").addEventListener("click", (e) => {
     if (e.target.id === "winnerModalOverlay") {
