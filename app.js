@@ -752,17 +752,19 @@ function drawWheel() {
 
   wheelCtx.clearRect(0, 0, width, height);
 
+  const baseScale = width / 600;
+
   if (items.length === 0) {
     wheelCtx.beginPath();
     wheelCtx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
     wheelCtx.fillStyle = "#1e293b";
     wheelCtx.fill();
-    wheelCtx.lineWidth = 6;
+    wheelCtx.lineWidth = Math.round(6 * baseScale);
     wheelCtx.strokeStyle = "#334155";
     wheelCtx.stroke();
 
     wheelCtx.fillStyle = "#94a3b8";
-    wheelCtx.font = "bold 20px 'Kantumruy Pro', Outfit, sans-serif";
+    wheelCtx.font = `bold ${Math.round(20 * baseScale)}px 'Kantumruy Pro', Outfit, sans-serif`;
     wheelCtx.textAlign = "center";
     wheelCtx.textBaseline = "middle";
 
@@ -801,7 +803,7 @@ function drawWheel() {
     wheelCtx.fillStyle = color;
     wheelCtx.fill();
 
-    wheelCtx.lineWidth = 2.5;
+    wheelCtx.lineWidth = Math.max(2, Math.round(2.5 * baseScale));
     wheelCtx.strokeStyle = "#0f172a";
     wheelCtx.stroke();
 
@@ -812,27 +814,29 @@ function drawWheel() {
     wheelCtx.textAlign = "right";
     wheelCtx.textBaseline = "middle";
     wheelCtx.fillStyle = "#ffffff";
-    wheelCtx.shadowColor = "rgba(0, 0, 0, 0.65)";
-    wheelCtx.shadowBlur = 4;
+    wheelCtx.shadowColor = "rgba(0, 0, 0, 0.75)";
+    wheelCtx.shadowBlur = Math.round(5 * baseScale);
 
-    const fontSize = items.length > 24 ? 13 : items.length > 14 ? 16 : 19;
+    const baseFont = items.length > 36 ? 11 : items.length > 24 ? 13 : items.length > 14 ? 16 : 19;
+    const fontSize = Math.round(baseFont * baseScale);
     wheelCtx.font = `600 ${fontSize}px 'Kantumruy Pro', Outfit, sans-serif`;
 
     const parsed = parseMemberGender(items[i]);
     const prizeAvatar = extractPrizeOrAvatar(items[i]);
     let itemText = parsed.icon ? `${parsed.icon} ${parsed.name}` : parsed.raw;
-    if (itemText.length > 22) {
-      itemText = itemText.substring(0, 20) + "...";
+    if (itemText.length > 24) {
+      itemText = itemText.substring(0, 22) + "...";
     }
 
-    wheelCtx.fillText(itemText, radius - 28, 0);
+    const textOffset = Math.round(32 * baseScale);
+    wheelCtx.fillText(itemText, radius - textOffset, 0);
     wheelCtx.restore();
   }
 
   // 3. Draw Outer Rim
   wheelCtx.beginPath();
   wheelCtx.arc(0, 0, radius, 0, 2 * Math.PI);
-  wheelCtx.lineWidth = 10;
+  wheelCtx.lineWidth = Math.round(11 * baseScale);
   wheelCtx.strokeStyle = palette.rim;
   wheelCtx.stroke();
 
@@ -840,14 +844,15 @@ function drawWheel() {
   const pinStep = (2 * Math.PI) / totalPins;
   for (let p = 0; p < totalPins; p++) {
     const pinAngle = p * pinStep;
-    const pinX = Math.cos(pinAngle) * (radius - 5);
-    const pinY = Math.sin(pinAngle) * (radius - 5);
+    const pinOffset = Math.round(6 * baseScale);
+    const pinX = Math.cos(pinAngle) * (radius - pinOffset);
+    const pinY = Math.sin(pinAngle) * (radius - pinOffset);
 
     wheelCtx.beginPath();
-    wheelCtx.arc(pinX, pinY, 4, 0, 2 * Math.PI);
+    wheelCtx.arc(pinX, pinY, Math.round(4.5 * baseScale), 0, 2 * Math.PI);
     wheelCtx.fillStyle = palette.pin;
     wheelCtx.fill();
-    wheelCtx.lineWidth = 1;
+    wheelCtx.lineWidth = 1.2;
     wheelCtx.strokeStyle = "#ffffff";
     wheelCtx.stroke();
   }
@@ -2191,7 +2196,7 @@ function resetScoreboard() {
 function initPwaSupport() {
   if ("serviceWorker" in navigator) {
     window.addEventListener("load", () => {
-      navigator.serviceWorker.register("./sw.js?v=2.5").then(reg => {
+      navigator.serviceWorker.register("./sw.js?v=2.6").then(reg => {
         console.log("ServiceWorker registered successfully:", reg.scope);
       }).catch(err => {
         console.warn("ServiceWorker registration failed:", err);
