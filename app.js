@@ -2191,7 +2191,7 @@ function resetScoreboard() {
 function initPwaSupport() {
   if ("serviceWorker" in navigator) {
     window.addEventListener("load", () => {
-      navigator.serviceWorker.register("./sw.js?v=2.3").then(reg => {
+      navigator.serviceWorker.register("./sw.js?v=2.4").then(reg => {
         console.log("ServiceWorker registered successfully:", reg.scope);
       }).catch(err => {
         console.warn("ServiceWorker registration failed:", err);
