@@ -3,7 +3,7 @@
  * Ensures 100% offline functionality in classrooms and halls with low/no internet
  */
 
-const CACHE_NAME = 'lucky-wheel-cache-v2.7';
+const CACHE_NAME = 'lucky-wheel-cache-v2.8';
 const STATIC_ASSETS = [
   './',
   './index.html',

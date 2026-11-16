@@ -63,8 +63,20 @@ body.lang-km {
   font-family: var(--font-khmer);
 }
 
-body.lang-en {
-  font-family: var(--font-en);
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+@media (min-width: 1024px) {
+  html, body {
+    height: 100vh;
+    max-height: 100vh;
+    overflow: hidden;
+  }
 }
 
 .app-container {
@@ -76,6 +88,14 @@ body.lang-en {
   overflow-x: hidden;
 }
 
+@media (min-width: 1024px) {
+  .app-container {
+    height: 100vh;
+    max-height: 100vh;
+    overflow: hidden;
+  }
+}
+
 /* ==========================================================================
    NAVIGATION BAR
    ========================================================================== */
@@ -83,17 +103,20 @@ body.lang-en {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.75rem clamp(0.75rem, 2.5vw, 1.75rem);
-  background: rgba(15, 23, 42, 0.92);
+  padding: 0.45rem clamp(0.6rem, 1.5vw, 1.25rem);
+  background: rgba(15, 23, 42, 0.94);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border-bottom: 1px solid var(--surface-card-border);
   position: sticky;
   top: 0;
   z-index: 100;
-  gap: 0.85rem;
+  gap: 0.5rem;
   width: 100%;
+  height: 56px;
+  min-height: 56px;
   box-sizing: border-box;
+  flex-shrink: 0;
 }
 
 .nav-left {
@@ -105,13 +128,13 @@ body.lang-en {
 .app-logo {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.65rem;
 }
 
 .brand-logo-img {
-  height: 44px;
+  height: 36px;
   width: auto;
-  max-width: 90px;
+  max-width: 80px;
   object-fit: contain;
   filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.4));
   transition: transform 0.2s ease;
@@ -298,31 +321,56 @@ body.lang-en {
 }
 
 /* ==========================================================================
-   MAIN CONTENT
+   MAIN CONTENT (FLEXIBLE & FIT TO ALL SCREENS)
    ========================================================================== */
 .main-content {
-  flex: 1;
+  flex: 1 1 auto;
+  min-height: 0;
   display: flex;
   flex-direction: column;
-  padding: clamp(0.75rem, 2.5vw, 1.5rem);
+  padding: clamp(0.4rem, 1vw, 0.75rem) clamp(0.6rem, 1.5vw, 1.25rem);
   max-width: 1540px;
   width: 100%;
   margin: 0 auto;
   box-sizing: border-box;
+  overflow-y: auto;
+}
+
+@media (min-width: 1024px) {
+  .main-content {
+    height: calc(100vh - 56px - 36px);
+    max-height: calc(100vh - 56px - 36px);
+  }
 }
 
 .view-panel {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 380px;
-  gap: 1.5rem;
-  flex: 1;
+  flex: 1 1 auto;
   width: 100%;
   box-sizing: border-box;
+  min-height: 0;
+}
+
+#wheelViewPanel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) clamp(310px, 28vw, 380px);
+  gap: clamp(0.75rem, 1.5vw, 1.25rem);
   align-items: stretch;
 }
 
+@media (min-width: 1024px) {
+  #wheelViewPanel {
+    height: 100%;
+    max-height: 100%;
+    overflow: hidden;
+  }
+}
+
+#teamMakerPanel {
+  display: block;
+}
+
 .view-panel.hidden {
-  display: none;
+  display: none !important;
 }
 
 /* ==========================================================================
@@ -336,15 +384,15 @@ body.lang-en {
   background: var(--surface-card);
   backdrop-filter: blur(12px);
   border: 1px solid var(--surface-card-border);
-  border-radius: 24px;
-  padding: 0.85rem 0.75rem;
+  border-radius: 20px;
+  padding: 0.6rem 0.65rem;
   box-shadow: var(--shadow-card);
   position: relative;
   overflow: hidden;
   width: 100%;
   height: 100%;
+  min-height: 0;
   box-sizing: border-box;
-  min-height: 520px;
 }
 
 .wheel-stage::before {
@@ -364,28 +412,23 @@ body.lang-en {
 
 .wheel-wrapper {
   position: relative;
-  width: min(96%, calc(100vh - 200px), 640px);
-  height: min(96%, calc(100vh - 200px), 640px);
-  max-width: 100%;
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: calc(100% - 85px);
+  max-width: calc(100% - 8px);
+  height: calc(100% - 85px);
+  width: auto;
   aspect-ratio: 1 / 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: auto 0;
+  margin: auto;
   z-index: 1;
 }
 
 @media (min-width: 1400px) {
   .wheel-wrapper {
-    width: min(96%, calc(100vh - 190px), 720px);
-    height: min(96%, calc(100vh - 190px), 720px);
-  }
-}
-
-@media (min-width: 1700px) {
-  .wheel-wrapper {
-    width: min(98%, calc(100vh - 180px), 800px);
-    height: min(98%, calc(100vh - 180px), 800px);
+    max-height: calc(100% - 88px);
   }
 }
 
@@ -501,6 +544,7 @@ body.lang-en {
   flex-wrap: wrap;
   justify-content: center;
   width: 100%;
+  flex-shrink: 0;
 }
 
 .action-btn {
@@ -548,27 +592,30 @@ body.lang-en {
 }
 
 /* ==========================================================================
-   SIDEBAR PANEL
+   SIDEBAR PANEL (FLEXIBLE HEIGHT & INTERNAL SCROLLING)
    ========================================================================== */
 .sidebar-panel {
   background: var(--surface-card);
   backdrop-filter: blur(12px);
   border: 1px solid var(--surface-card-border);
-  border-radius: 24px;
-  padding: 1.25rem;
+  border-radius: 20px;
+  padding: 0.85rem;
   display: flex;
   flex-direction: column;
   box-shadow: var(--shadow-card);
   height: 100%;
   width: 100%;
   box-sizing: border-box;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .sidebar-header {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
-  margin-bottom: 0.85rem;
+  gap: 0.4rem;
+  margin-bottom: 0.45rem;
+  flex-shrink: 0;
 }
 
 .sidebar-title-wrap {
@@ -578,7 +625,7 @@ body.lang-en {
 }
 
 .sidebar-title-wrap h2 {
-  font-size: 1.1rem;
+  font-size: 1.05rem;
   font-weight: 700;
   color: var(--text-main);
 }
@@ -587,21 +634,21 @@ body.lang-en {
   background: rgba(99, 102, 241, 0.25);
   color: #a5b4fc;
   border: 1px solid rgba(165, 180, 252, 0.3);
-  padding: 0.2rem 0.6rem;
+  padding: 0.15rem 0.55rem;
   border-radius: 9999px;
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   font-weight: 700;
 }
 
 .preset-dropdown {
   width: 100%;
-  padding: 0.6rem 0.8rem;
+  padding: 0.45rem 0.75rem;
   border-radius: 10px;
   background: rgba(15, 23, 42, 0.9);
   color: var(--text-main);
   border: 1px solid var(--surface-card-border);
   font-family: inherit;
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   outline: none;
   cursor: pointer;
   transition: border-color 0.2s;
@@ -612,29 +659,31 @@ body.lang-en {
 }
 
 .textarea-container {
-  flex: 1;
-  min-height: 200px;
+  flex: 1 1 auto;
+  min-height: 60px;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
 #entriesTextarea {
-  flex: 1;
+  flex: 1 1 auto;
   width: 100%;
-  min-height: 200px;
+  min-height: 60px;
   height: 100%;
   background: rgba(15, 23, 42, 0.75);
   border: 1px solid var(--surface-card-border);
   border-radius: 12px;
-  padding: 0.85rem;
+  padding: 0.65rem 0.75rem;
   color: var(--text-main);
   font-family: inherit;
-  font-size: 0.92rem;
-  line-height: 1.6;
+  font-size: 0.88rem;
+  line-height: 1.5;
   resize: none;
   outline: none;
   transition: all 0.2s;
   box-sizing: border-box;
+  overflow-y: auto;
 }
 
 #entriesTextarea:focus {
@@ -645,8 +694,9 @@ body.lang-en {
 .sidebar-toolbar {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-top: 0.75rem;
+  gap: 0.35rem;
+  margin-top: 0.35rem;
+  flex-shrink: 0;
 }
 
 .sub-btn {
@@ -654,10 +704,10 @@ body.lang-en {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.4rem;
-  padding: 0.5rem 0.65rem;
+  gap: 0.35rem;
+  padding: 0.45rem 0.55rem;
   border-radius: 10px;
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   font-weight: 600;
   font-family: inherit;
   border: 1px solid var(--surface-card-border);
@@ -681,12 +731,14 @@ body.lang-en {
 
 /* History / Winners Log */
 .history-section {
-  margin-top: 1rem;
+  margin-top: 0.45rem;
   border-top: 1px solid var(--surface-card-border);
-  padding-top: 0.85rem;
+  padding-top: 0.4rem;
   display: flex;
   flex-direction: column;
-  max-height: 180px;
+  min-height: 0;
+  max-height: clamp(80px, 16vh, 135px);
+  flex-shrink: 0;
 }
 
 .history-header {
@@ -1526,8 +1578,10 @@ body.lang-en {
    AC MART FOOTER & COPYRIGHT
    ========================================================================== */
 .app-footer {
-  margin-top: auto;
-  padding: 0.65rem 1.25rem;
+  flex-shrink: 0;
+  height: 36px;
+  min-height: 36px;
+  padding: 0.3rem 1rem;
   border-top: 1px solid var(--surface-card-border);
   background: rgba(10, 15, 30, 0.85);
   backdrop-filter: blur(12px);
@@ -1543,16 +1597,16 @@ body.lang-en {
 .footer-content {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.5rem;
   color: var(--text-muted);
-  font-size: 0.8rem;
+  font-size: 0.76rem;
   flex-wrap: wrap;
   justify-content: center;
   text-align: center;
 }
 
 .footer-logo-img {
-  height: 28px;
+  height: 22px;
   width: auto;
   object-fit: contain;
   filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.5));
@@ -1794,12 +1848,35 @@ body.lang-en {
   }
 }
 
-/* 1. Medium / Tablet Screens (<= 1100px) */
-@media (max-width: 1100px) {
+/* 1. Tablets & Portrait Screens (<= 1023px) */
+@media (max-width: 1023px) {
+  html, body {
+    height: auto !important;
+    max-height: none !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+  }
+
+  .app-container {
+    height: auto !important;
+    min-height: 100vh !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+
+  .main-content {
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+    padding: 0.65rem 0.5rem;
+  }
+
   .top-nav {
+    height: auto;
+    min-height: auto;
     flex-wrap: wrap;
-    gap: 0.65rem;
-    padding: 0.65rem 1rem;
+    gap: 0.5rem;
+    padding: 0.55rem 0.85rem;
   }
 
   .nav-left {
@@ -1812,7 +1889,7 @@ body.lang-en {
     margin-left: auto;
     display: flex;
     align-items: center;
-    gap: 0.4rem;
+    gap: 0.35rem;
     flex-wrap: wrap;
     justify-content: flex-end;
   }
@@ -1833,32 +1910,96 @@ body.lang-en {
   .mode-btn {
     flex: 1;
     justify-content: center;
-    padding: 0.5rem 0.6rem;
+    padding: 0.45rem 0.5rem;
+    font-size: 0.82rem;
   }
 
-  .view-panel {
+  .view-panel,
+  #wheelViewPanel {
     display: flex;
     flex-direction: column;
     width: 100%;
-    gap: 1.25rem;
+    height: auto !important;
+    max-height: none !important;
+    gap: 1rem;
   }
 
   .sidebar-panel {
-    max-height: none;
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
     width: 100%;
+    padding: 1rem 0.85rem;
   }
 
   .wheel-stage {
+    height: auto !important;
+    min-height: 400px;
     padding: 1rem 0.75rem;
   }
 
   .wheel-wrapper {
-    width: min(92vw, calc(100vh - 220px), 520px);
-    height: min(92vw, calc(100vh - 220px), 520px);
+    width: min(92vw, 48vh, 420px) !important;
+    height: min(92vw, 48vh, 420px) !important;
+    max-height: none !important;
+  }
+
+  .textarea-container {
+    min-height: 180px;
+  }
+
+  #entriesTextarea {
+    min-height: 180px;
+  }
+
+  .history-section {
+    max-height: 220px;
   }
 
   .team-maker-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+/* Short Height Screens (<= 680px height on desktop/laptop) */
+@media (max-height: 680px) and (min-width: 1024px) {
+  .top-nav {
+    height: 48px;
+    min-height: 48px;
+    padding: 0.25rem 0.75rem;
+  }
+  .brand-logo-img {
+    height: 30px;
+  }
+  .logo-text h1 {
+    font-size: 0.98rem;
+  }
+  .app-footer {
+    height: 30px;
+    min-height: 30px;
+    padding: 0.2rem 0.75rem;
+  }
+  .main-content {
+    height: calc(100vh - 48px - 30px);
+    max-height: calc(100vh - 48px - 30px);
+    padding: 0.35rem 0.65rem;
+  }
+  .sidebar-panel {
+    padding: 0.65rem;
+  }
+  .history-section {
+    max-height: 95px;
+  }
+  .wheel-stage {
+    padding: 0.45rem 0.5rem;
+  }
+  .wheel-wrapper {
+    height: calc(100% - 76px);
+    max-height: calc(100% - 76px);
+  }
+  .spin-center-btn {
+    width: clamp(70px, 16%, 98px);
+    height: clamp(70px, 16%, 98px);
   }
 }
 
@@ -2301,6 +2442,7 @@ body.lang-en {
   flex-wrap: wrap;
   z-index: 10;
   width: 100%;
+  flex-shrink: 0;
 }
 
 .filter-pill-btn {
@@ -2416,6 +2558,7 @@ body.lang-en {
   background: rgba(2, 6, 23, 0.55);
   border-radius: 8px;
   border: 1px dashed rgba(255, 255, 255, 0.08);
+  flex-shrink: 0;
 }
 
 .gender-balance-toggle {
@@ -2655,10 +2798,11 @@ body.theme-khmer-gold .action-btn.primary-glow {
   display: flex;
   background: rgba(15, 23, 42, 0.6);
   border: 1px solid var(--surface-card-border);
-  border-radius: 12px;
-  padding: 0.25rem;
+  border-radius: 10px;
+  padding: 0.2rem;
   gap: 0.25rem;
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.45rem;
+  flex-shrink: 0;
 }
 
 .view-toggle-btn {
@@ -2666,13 +2810,13 @@ body.theme-khmer-gold .action-btn.primary-glow {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.45rem;
-  padding: 0.5rem 0.65rem;
+  gap: 0.35rem;
+  padding: 0.4rem 0.55rem;
   border-radius: 8px;
   border: none;
   background: transparent;
   color: var(--text-muted);
-  font-size: 0.88rem;
+  font-size: 0.82rem;
   font-family: inherit;
   font-weight: 600;
   cursor: pointer;
@@ -2699,21 +2843,23 @@ body.theme-khmer-gold .action-btn.primary-glow {
 }
 
 .attendance-container {
-  flex: 1;
+  flex: 1 1 auto;
   display: flex;
   flex-direction: column;
-  gap: 0.65rem;
+  gap: 0.45rem;
   background: rgba(15, 23, 42, 0.55);
   border: 1px solid var(--surface-card-border);
   border-radius: 12px;
-  padding: 0.75rem;
-  min-height: 200px;
+  padding: 0.6rem;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .attendance-toolbar {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.4rem;
+  flex-shrink: 0;
 }
 
 .attendance-search-input {
@@ -2721,11 +2867,12 @@ body.theme-khmer-gold .action-btn.primary-glow {
   background: rgba(30, 41, 59, 0.8);
   border: 1px solid var(--surface-card-border);
   color: var(--text-main);
-  padding: 0.45rem 0.75rem;
+  padding: 0.4rem 0.65rem;
   border-radius: 8px;
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   font-family: inherit;
   outline: none;
+  box-sizing: border-box;
 }
 
 .attendance-search-input:focus {
@@ -2734,16 +2881,16 @@ body.theme-khmer-gold .action-btn.primary-glow {
 
 .attendance-quick-actions {
   display: flex;
-  gap: 0.4rem;
+  gap: 0.35rem;
 }
 
 .attendance-checklist {
-  flex: 1;
+  flex: 1 1 auto;
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
-  min-height: 180px;
-  max-height: 380px;
+  gap: 0.35rem;
+  min-height: 0;
+  max-height: none;
   overflow-y: auto;
   padding-right: 0.25rem;
 }
