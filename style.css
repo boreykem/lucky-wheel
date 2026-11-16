@@ -2382,16 +2382,17 @@ body.lang-en {
 }
 
 .team-card-gender-pill {
-  display: inline-flex;
+  display: inline-flex !important;
   align-items: center;
   gap: 0.45rem;
-  padding: 0.2rem 0.65rem;
-  background: rgba(15, 23, 42, 0.65);
+  padding: 0.22rem 0.7rem;
+  background: rgba(15, 23, 42, 0.85);
   border-radius: 999px;
-  font-size: 0.78rem;
+  font-size: 0.8rem;
   font-weight: 700;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(6px);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
 }
 
 .team-card-gender-pill .m-stat {
