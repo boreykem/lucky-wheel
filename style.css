@@ -1149,13 +1149,13 @@ html, body {
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(2, 6, 23, 0.8);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  background: rgba(2, 6, 23, 0.82);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: 10000;
   opacity: 1;
   transition: opacity 0.3s ease;
   padding: clamp(0.5rem, 2.5vw, 1.25rem);
@@ -1811,7 +1811,7 @@ html, body {
   font-size: 0.88rem;
   font-weight: 600;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6), 0 0 20px rgba(56, 189, 248, 0.25);
-  z-index: 2000;
+  z-index: 10050;
   transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
   pointer-events: none;
   text-align: center;
@@ -3138,6 +3138,16 @@ body.projector-mode .wheel-actions .action-btn {
 
 body.projector-mode .projector-exit-btn {
   display: inline-flex !important;
+}
+
+body.projector-mode .modal-overlay {
+  z-index: 10000 !important;
+}
+
+body.projector-mode .winner-modal-card {
+  max-width: 580px;
+  border-width: 3px;
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.95), 0 0 70px rgba(99, 102, 241, 0.6);
 }
 
 .projector-exit-btn.hidden {
