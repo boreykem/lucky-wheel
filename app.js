@@ -86,7 +86,20 @@ const TRANSLATIONS = {
     scanQrTitle: "ស្កេន QR Code ដើម្បីបើកកម្មវិធី",
     scanQrSubtitle: "ប្រើកាមេរ៉ាទូរស័ព្ទដើម្បីបើកលើទូរស័ព្ទ ឬ iPad",
     shareViaTelegram: "ផ្ញើតាម Telegram",
-    copyLink: "ចម្លងតំណភ្ជាប់"
+    copyLink: "ចម្លងតំណភ្ជាប់",
+    filterAll: "ទាំងអស់",
+    filterMale: "សិស្សប្រុស",
+    filterFemale: "សិស្សស្រី",
+    pairDraw: "ចាប់ជាគូ (👫)",
+    pairDrawTitle: "🎉 គូដែលត្រូវបានជ្រើសរើស (Pair Draw)៖",
+    genderBalanceToggle: "⚖️ ធានាតុល្យភាពយេនឌ័រ (ស្មើប្រុស/ស្រីក្នុងគ្រប់ក្រុម)",
+    genderTip: "សម្គាល់យេនឌ័រ៖ (ប)/(M) = ប្រុស, (ស)/(F) = ស្រី",
+    needBoyAndGirlForPair: "សូមបញ្ចូលឈ្មោះប្រុស និងស្រីយ៉ាងហោចណាស់ម្នាក់ដើម្បីចាប់ជាគូ!",
+    boyLabel: "ប្រុស (Male)",
+    girlLabel: "ស្រី (Female)",
+    unspecifiedLabel: "មិនបញ្ជាក់ (Unspecified)",
+    removeBothWinners: "ដកឈ្មោះទាំងពីរចេញ",
+    keepBothWinners: "រក្សាទុកទាំងពីរ"
   },
   en: {
     appTitle: "Lucky Spin Wheel",
@@ -166,7 +179,20 @@ const TRANSLATIONS = {
     scanQrTitle: "Scan QR Code to Open App",
     scanQrSubtitle: "Point your phone camera to open on mobile or tablet",
     shareViaTelegram: "Share via Telegram",
-    copyLink: "Copy Link"
+    copyLink: "Copy Link",
+    filterAll: "All",
+    filterMale: "Boys",
+    filterFemale: "Girls",
+    pairDraw: "Pair Draw (👫)",
+    pairDrawTitle: "🎉 Selected Pair (Boy & Girl):",
+    genderBalanceToggle: "⚖️ Gender-Balanced Teams (Equal Boy/Girl ratio)",
+    genderTip: "Tag gender: (M)/(ប) = Male, (F)/(ស) = Female",
+    needBoyAndGirlForPair: "Please have at least 1 male and 1 female to draw a pair!",
+    boyLabel: "Male",
+    girlLabel: "Female",
+    unspecifiedLabel: "Unspecified",
+    removeBothWinners: "Remove Both",
+    keepBothWinners: "Keep Both"
   }
 };
 
@@ -197,9 +223,9 @@ const PEDAGOGICAL_CHALLENGES = {
 // Presets
 const PRESETS = {
   "khmer-students": [
-    "សុខា (Sokha)", "បូផា (Bopha)", "តារា (Dara)", "ចិន្តា (Chinda)",
-    "វិបុល (Vibol)", "កញ្ញា (Kanya)", "រតនា (Rattana)", "ចាន់ណា (Channa)",
-    "សុវណ្ណ (Sovann)", "ពិសិដ្ឋ (Piseth)", "ធីតា (Thida)", "មុន្នី (Mony)"
+    "សុខា (Sokha) (ប)", "បូផា (Bopha) (ស)", "តារា (Dara) (ប)", "ចិន្តា (Chinda) (ស)",
+    "វិបុល (Vibol) (ប)", "កញ្ញា (Kanya) (ស)", "រតនា (Rattana) (ប)", "ចាន់ណា (Channa) (ស)",
+    "សុវណ្ណ (Sovann) (ប)", "ធីតា (Thida) (ស)", "ពិសិដ្ឋ (Piseth) (ប)", "មុន្នី (Mony) (ស)"
   ],
   "team-alpha": [
     "ក្រុមទី ១ (Group 1)", "ក្រុមទី ២ (Group 2)", "ក្រុមទី ៣ (Group 3)",
@@ -230,23 +256,80 @@ const TEAM_COLOR_THEMES = [
 ];
 
 // ==========================================================================
-// 2. STATE MANAGEMENT
+// 2. STATE MANAGEMENT & GENDER PARSER
 // ==========================================================================
 let currentLang = localStorage.getItem("lucky_wheel_lang") || "km";
 let currentMode = "spin-names";
 let soundEnabled = true;
 
+let genderWheelFilter = "all"; // "all" | "M" | "F"
+let currentPairWinners = null; // null or { boy: string, girl: string }
+
 let savedClasses = JSON.parse(localStorage.getItem("lucky_wheel_classes") || "{}");
 
 let namesList = [
-  "តារា (Dara)", "សុខា (Sokha)", "បូផា (Bopha)", "វិបុល (Vibol)", 
-  "កញ្ញា (Kanya)", "ចិន្តា (Chinda)", "រតនា (Rattana)", "ពិសិដ្ឋ (Piseth)"
+  "សុខា (Sokha) (ប)", "បូផា (Bopha) (ស)", "តារា (Dara) (ប)", "ចិន្តា (Chinda) (ស)", 
+  "វិបុល (Vibol) (ប)", "កញ្ញា (Kanya) (ស)", "រតនា (Rattana) (ប)", "ពិសិដ្ឋ (Piseth) (ប)"
 ];
 
 let groupsList = [
   "ក្រុមទី ១ (Team Alpha)", "ក្រុមទី ២ (Team Bravo)", "ក្រុមទី ៣ (Team Charlie)", 
   "ក្រុមទី ៤ (Team Delta)", "ក្រុមទី ៥ (Team Echo)", "ក្រុមទី ៦ (Team Foxtrot)"
 ];
+
+function parseMemberGender(rawName) {
+  if (!rawName) return { raw: "", name: "", gender: "U", icon: "" };
+  const str = rawName.trim();
+  let gender = "U";
+  let icon = "";
+  let cleanName = str;
+
+  // Direct Emoji tags
+  if (str.includes("👦") || str.includes("👨")) {
+    gender = "M";
+    icon = "👦";
+    cleanName = str.replace(/[👦👨]/g, "").trim();
+    return { raw: str, name: cleanName || str, gender, icon };
+  }
+  if (str.includes("👧") || str.includes("👩")) {
+    gender = "F";
+    icon = "👧";
+    cleanName = str.replace(/[👧👩]/g, "").trim();
+    return { raw: str, name: cleanName || str, gender, icon };
+  }
+
+  // Regex for bracketed / delimited markers at end of string
+  // Khmer: (ប), [ប], (ប្រុស), [ប្រុស] | English: (M), [M], (Male), [Male], (Boy), [Boy]
+  const endBracketFemale = /[\(\[\{](?:ស|ស្រី|F|Female|Girl)[\)\]\}]$/i;
+  const endBracketMale = /[\(\[\{](?:ប|ប្រុស|M|Male|Boy)[\)\]\}]$/i;
+  const commaOrDashFemale = /[,|\-\/]\s*(?:ស|ស្រី|F|Female|Girl)$/i;
+  const commaOrDashMale = /[,|\-\/]\s*(?:ប|ប្រុស|M|Male|Boy)$/i;
+
+  if (endBracketFemale.test(str)) {
+    gender = "F";
+    icon = "👧";
+    cleanName = str.replace(endBracketFemale, "").trim();
+  } else if (endBracketMale.test(str)) {
+    gender = "M";
+    icon = "👦";
+    cleanName = str.replace(endBracketMale, "").trim();
+  } else if (commaOrDashFemale.test(str)) {
+    gender = "F";
+    icon = "👧";
+    cleanName = str.replace(commaOrDashFemale, "").trim();
+  } else if (commaOrDashMale.test(str)) {
+    gender = "M";
+    icon = "👦";
+    cleanName = str.replace(commaOrDashMale, "").trim();
+  }
+
+  return {
+    raw: str,
+    name: cleanName || str,
+    gender,
+    icon
+  };
+}
 
 let generatedTeamsMap = {}; // Maps team title -> array of member names
 let winnersHistory = [];
@@ -440,10 +523,23 @@ function updateStepperLabel() {
 }
 
 // ==========================================================================
-// 5. WHEEL CANVAS RENDERING (WITH KANTUMRUY PRO SUPPORT)
+// 5. WHEEL CANVAS RENDERING (WITH KANTUMRUY PRO SUPPORT & GENDER TAGS)
 // ==========================================================================
 function getActiveItems() {
   return currentMode === "spin-groups" ? groupsList : namesList;
+}
+
+function getWheelItems() {
+  if (currentMode === "spin-groups") {
+    return groupsList;
+  }
+  if (genderWheelFilter === "M") {
+    return namesList.filter(n => parseMemberGender(n).gender === "M");
+  }
+  if (genderWheelFilter === "F") {
+    return namesList.filter(n => parseMemberGender(n).gender === "F");
+  }
+  return namesList;
 }
 
 function setActiveItems(items) {
@@ -468,14 +564,47 @@ function updateTextareaFromState() {
 }
 
 function updateItemCount() {
-  const items = getActiveItems();
-  document.getElementById("itemCountBadge").textContent = items.length;
+  const allNames = namesList;
+  let boyCount = 0;
+  let girlCount = 0;
+  allNames.forEach(n => {
+    const g = parseMemberGender(n).gender;
+    if (g === "M") boyCount++;
+    else if (g === "F") girlCount++;
+  });
+
+  const countBadge = document.getElementById("itemCountBadge");
+  if (countBadge) {
+    countBadge.textContent = currentMode === "spin-groups" ? groupsList.length : namesList.length;
+  }
+
+  // Sidebar gender badges
+  const sideMale = document.getElementById("sidebarMaleBadge");
+  const sideFemale = document.getElementById("sidebarFemaleBadge");
+  if (sideMale) sideMale.textContent = `👦 ${boyCount}`;
+  if (sideFemale) sideFemale.textContent = `👧 ${girlCount}`;
+
+  // Wheel filter bar badges
+  const badgeAll = document.getElementById("badgeAll");
+  const badgeMale = document.getElementById("badgeMale");
+  const badgeFemale = document.getElementById("badgeFemale");
+  if (badgeAll) badgeAll.textContent = namesList.length;
+  if (badgeMale) badgeMale.textContent = boyCount;
+  if (badgeFemale) badgeFemale.textContent = girlCount;
+
+  // Team maker badges
+  const teamMemberBadge = document.getElementById("teamMembersCountBadge");
+  const teamMale = document.getElementById("teamMaleBadge");
+  const teamFemale = document.getElementById("teamFemaleBadge");
+  if (teamMemberBadge) teamMemberBadge.textContent = namesList.length;
+  if (teamMale) teamMale.textContent = `👦 ${boyCount}`;
+  if (teamFemale) teamFemale.textContent = `👧 ${girlCount}`;
 }
 
 function drawWheel() {
   if (!wheelCanvas || !wheelCtx) return;
 
-  const items = getActiveItems();
+  const items = getWheelItems();
   const width = wheelCanvas.width;
   const height = wheelCanvas.height;
   const centerX = width / 2;
@@ -494,10 +623,19 @@ function drawWheel() {
     wheelCtx.stroke();
 
     wheelCtx.fillStyle = "#94a3b8";
-    wheelCtx.font = "bold 22px 'Kantumruy Pro', Outfit, sans-serif";
+    wheelCtx.font = "bold 20px 'Kantumruy Pro', Outfit, sans-serif";
     wheelCtx.textAlign = "center";
     wheelCtx.textBaseline = "middle";
-    wheelCtx.fillText(currentLang === "km" ? "សូមបញ្ចូលឈ្មោះ..." : "Add names to spin...", centerX, centerY);
+
+    let emptyMsg = currentLang === "km" ? "សូមបញ្ចូលឈ្មោះ..." : "Add names to spin...";
+    if (currentMode === "spin-names") {
+      if (genderWheelFilter === "M") {
+        emptyMsg = currentLang === "km" ? "មិនទាន់មានឈ្មោះប្រុស (M/ប)" : "No male names found";
+      } else if (genderWheelFilter === "F") {
+        emptyMsg = currentLang === "km" ? "មិនទាន់មានឈ្មោះស្រី (F/ស)" : "No female names found";
+      }
+    }
+    wheelCtx.fillText(emptyMsg, centerX, centerY);
     return;
   }
 
@@ -538,9 +676,10 @@ function drawWheel() {
     const fontSize = items.length > 24 ? 13 : items.length > 14 ? 16 : 19;
     wheelCtx.font = `600 ${fontSize}px 'Kantumruy Pro', Outfit, sans-serif`;
 
-    let itemText = items[i];
-    if (itemText.length > 20) {
-      itemText = itemText.substring(0, 18) + "...";
+    const parsed = parseMemberGender(items[i]);
+    let itemText = parsed.icon ? `${parsed.icon} ${parsed.name}` : parsed.raw;
+    if (itemText.length > 22) {
+      itemText = itemText.substring(0, 20) + "...";
     }
 
     wheelCtx.fillText(itemText, radius - 28, 0);
@@ -577,12 +716,23 @@ function drawWheel() {
 // 6. WHEEL SPINNING ENGINE & PHYSICS
 // ==========================================================================
 function spinWheel() {
-  const items = getActiveItems();
+  const items = getWheelItems();
   if (items.length < 2) {
+    if (currentMode === "spin-names") {
+      if (genderWheelFilter === "M") {
+        alert(currentLang === "km" ? "សូមបញ្ចូលឈ្មោះប្រុស (M/ប) យ៉ាងហោចណាស់ ២ នាក់ដើម្បីបង្វិលកង!" : "Please add at least 2 male entries to spin!");
+        return;
+      }
+      if (genderWheelFilter === "F") {
+        alert(currentLang === "km" ? "សូមបញ្ចូលឈ្មោះស្រី (F/ស) យ៉ាងហោចណាស់ ២ នាក់ដើម្បីបង្វិលកង!" : "Please add at least 2 female entries to spin!");
+        return;
+      }
+    }
     alert(TRANSLATIONS[currentLang].needTwoItems);
     return;
   }
   if (isSpinning) return;
+  currentPairWinners = null;
 
   initAudio();
   isSpinning = true;
@@ -639,8 +789,90 @@ function spinWheel() {
   requestAnimationFrame(animate);
 }
 
+function startPairDraw() {
+  if (currentMode !== "spin-names") {
+    switchMode("spin-names");
+  }
+
+  const males = namesList.filter(n => parseMemberGender(n).gender === "M");
+  const females = namesList.filter(n => parseMemberGender(n).gender === "F");
+
+  if (males.length === 0 || females.length === 0) {
+    alert(TRANSLATIONS[currentLang].needBoyAndGirlForPair);
+    return;
+  }
+  if (isSpinning) return;
+
+  initAudio();
+  isSpinning = true;
+  startDrumroll();
+
+  document.getElementById("spinCenterBtn").disabled = true;
+  document.getElementById("spinActionBtn").disabled = true;
+  const pairBtn = document.getElementById("pairDrawBtn");
+  if (pairBtn) pairBtn.disabled = true;
+
+  const fullRotations = (5 + Math.random() * 4) * 2 * Math.PI;
+  const randomOffset = Math.random() * 2 * Math.PI;
+  const targetRotation = currentRotation + fullRotations + randomOffset;
+
+  const startRotation = currentRotation;
+  const spinDuration = 4500 + Math.random() * 1500;
+  const startTime = performance.now();
+
+  const pointerEl = document.querySelector(".wheel-pointer");
+  const items = getWheelItems();
+  const sliceAngle = (2 * Math.PI) / Math.max(1, items.length);
+
+  function animate(currentTime) {
+    const elapsed = currentTime - startTime;
+    const progress = Math.min(elapsed / spinDuration, 1);
+    const easeOut = 1 - Math.pow(1 - progress, 3);
+    currentRotation = startRotation + (targetRotation - startRotation) * easeOut;
+
+    const pointerAngle = 0;
+    const normalizedAngle = (pointerAngle - currentRotation) % (2 * Math.PI);
+    const positiveAngle = normalizedAngle < 0 ? normalizedAngle + 2 * Math.PI : normalizedAngle;
+    const currentSlice = Math.floor(positiveAngle / sliceAngle);
+
+    if (currentSlice !== lastTickAngle) {
+      lastTickAngle = currentSlice;
+      playTickSound();
+      if (pointerEl) {
+        pointerEl.style.transform = "rotate(-14deg)";
+        setTimeout(() => { if (pointerEl) pointerEl.style.transform = "rotate(0deg)"; }, 45);
+      }
+    }
+
+    drawWheel();
+
+    if (progress < 1) {
+      requestAnimationFrame(animate);
+    } else {
+      stopDrumroll();
+      isSpinning = false;
+      document.getElementById("spinCenterBtn").disabled = false;
+      document.getElementById("spinActionBtn").disabled = false;
+      if (pairBtn) pairBtn.disabled = false;
+
+      // Select 1 random male and 1 random female
+      const selectedBoy = males[Math.floor(Math.random() * males.length)];
+      const selectedGirl = females[Math.floor(Math.random() * females.length)];
+
+      playWinSound();
+      launchConfetti();
+
+      const pairHistoryLabel = `👫 ${parseMemberGender(selectedBoy).name} & ${parseMemberGender(selectedGirl).name}`;
+      addToHistory(pairHistoryLabel);
+      showPairWinnerModal(selectedBoy, selectedGirl);
+    }
+  }
+
+  requestAnimationFrame(animate);
+}
+
 function finishSpin() {
-  const items = getActiveItems();
+  const items = getWheelItems();
   const sliceAngle = (2 * Math.PI) / items.length;
 
   const pointerAngle = 0;
@@ -648,13 +880,15 @@ function finishSpin() {
   const positiveAngle = normalizedAngle < 0 ? normalizedAngle + 2 * Math.PI : normalizedAngle;
   currentWinnerIndex = Math.floor(positiveAngle / sliceAngle) % items.length;
 
-  const winnerName = items[currentWinnerIndex];
+  const winnerRaw = items[currentWinnerIndex];
 
   playWinSound();
   launchConfetti();
 
-  addToHistory(winnerName);
-  showWinnerModal(winnerName);
+  const parsedWinner = parseMemberGender(winnerRaw);
+  const historyText = parsedWinner.icon ? `${parsedWinner.icon} ${parsedWinner.name}` : parsedWinner.raw;
+  addToHistory(historyText);
+  showWinnerModal(winnerRaw);
 }
 
 function launchConfetti(originY = 0.6) {
@@ -676,9 +910,28 @@ function launchConfetti(originY = 0.6) {
 // 7. PEDAGOGICAL WINNER MODAL & COUNTDOWN TIMER
 // ==========================================================================
 function showWinnerModal(name) {
+  currentPairWinners = null;
   const modal = document.getElementById("winnerModalOverlay");
+  const modalTitle = document.querySelector(".winner-modal-header .modal-title");
+  if (modalTitle) {
+    modalTitle.textContent = TRANSLATIONS[currentLang].winnerAnnounce;
+  }
+  const removeBtn = document.getElementById("removeWinnerBtn");
+  const keepBtn = document.getElementById("keepWinnerBtn");
+  if (removeBtn) {
+    removeBtn.innerHTML = `<span>❌</span> <span>${TRANSLATIONS[currentLang].removeWinner}</span>`;
+  }
+  if (keepBtn) {
+    keepBtn.innerHTML = `<span>✅</span> <span>${TRANSLATIONS[currentLang].keepWinner}</span>`;
+  }
+
   const nameDisplay = document.getElementById("winnerNameDisplay");
-  nameDisplay.textContent = name;
+  const parsed = parseMemberGender(name);
+  if (parsed.icon) {
+    nameDisplay.innerHTML = `<span class="winner-gender-pill">${parsed.icon}</span> ${escapeHtml(parsed.name)}`;
+  } else {
+    nameDisplay.textContent = escapeHtml(parsed.name);
+  }
 
   // If spinning groups and this group has known members, display them beautifully
   const teamMembersBox = document.getElementById("winnerTeamMembersBox");
@@ -690,12 +943,15 @@ function showWinnerModal(name) {
       if (teamMembersCount) {
         teamMembersCount.textContent = `(${members.length}${TRANSLATIONS[currentLang].membersSuffix})`;
       }
-      teamMembersList.innerHTML = members.map((m, mIdx) => `
-        <span class="winner-member-chip" title="${escapeHtml(m)}">
-          <span class="winner-member-name">${escapeHtml(m)}</span>
-          ${getMemberRoleBadge(mIdx)}
-        </span>
-      `).join("");
+      teamMembersList.innerHTML = members.map((m, mIdx) => {
+        const mParsed = parseMemberGender(m);
+        return `
+          <span class="winner-member-chip" title="${escapeHtml(m)}">
+            <span class="winner-member-name">${mParsed.icon ? mParsed.icon + ' ' : ''}${escapeHtml(mParsed.name)}</span>
+            ${getMemberRoleBadge(mIdx)}
+          </span>
+        `;
+      }).join("");
       teamMembersBox.classList.remove("hidden");
     } else {
       teamMembersBox.classList.add("hidden");
@@ -708,6 +964,53 @@ function showWinnerModal(name) {
   const modalBody = document.getElementById("winnerModalBody");
   if (modalBody) modalBody.scrollTop = 0;
   if (teamMembersList) teamMembersList.scrollTop = 0;
+
+  startCountdown(30);
+  rollNewChallenge();
+
+  modal.classList.remove("hidden");
+}
+
+function showPairWinnerModal(boyRaw, girlRaw) {
+  currentPairWinners = { boy: boyRaw, girl: girlRaw };
+  const modal = document.getElementById("winnerModalOverlay");
+  const modalTitle = document.querySelector(".winner-modal-header .modal-title");
+  if (modalTitle) {
+    modalTitle.textContent = TRANSLATIONS[currentLang].pairDrawTitle;
+  }
+
+  const removeBtn = document.getElementById("removeWinnerBtn");
+  const keepBtn = document.getElementById("keepWinnerBtn");
+  if (removeBtn) {
+    removeBtn.innerHTML = `<span>❌</span> <span>${TRANSLATIONS[currentLang].removeBothWinners}</span>`;
+  }
+  if (keepBtn) {
+    keepBtn.innerHTML = `<span>✅</span> <span>${TRANSLATIONS[currentLang].keepBothWinners}</span>`;
+  }
+
+  const nameDisplay = document.getElementById("winnerNameDisplay");
+  const boyParsed = parseMemberGender(boyRaw);
+  const girlParsed = parseMemberGender(girlRaw);
+
+  nameDisplay.innerHTML = `
+    <div class="pair-winner-display">
+      <div class="pair-card boy-card">
+        <span class="pair-gender-icon">👦</span>
+        <span class="pair-name">${escapeHtml(boyParsed.name)}</span>
+      </div>
+      <span class="pair-connector">&</span>
+      <div class="pair-card girl-card">
+        <span class="pair-gender-icon">👧</span>
+        <span class="pair-name">${escapeHtml(girlParsed.name)}</span>
+      </div>
+    </div>
+  `;
+
+  const teamMembersBox = document.getElementById("winnerTeamMembersBox");
+  if (teamMembersBox) teamMembersBox.classList.add("hidden");
+
+  const modalBody = document.getElementById("winnerModalBody");
+  if (modalBody) modalBody.scrollTop = 0;
 
   startCountdown(30);
   rollNewChallenge();
@@ -765,7 +1068,7 @@ function rollNewChallenge() {
 }
 
 function triggerAskFriend() {
-  const items = getActiveItems().filter((_, i) => i !== currentWinnerIndex);
+  const items = getWheelItems().filter((_, i) => i !== currentWinnerIndex);
   if (items.length === 0) return;
 
   const randomHelper = items[Math.floor(Math.random() * items.length)];
@@ -810,7 +1113,7 @@ function renderHistory() {
 }
 
 // ==========================================================================
-// 8. TEAM MAKER GENERATOR WITH COOPERATIVE ROLES
+// 8. TEAM MAKER GENERATOR WITH GENDER BALANCE & COOPERATIVE ROLES
 // ==========================================================================
 let currentGeneratedTeams = [];
 
@@ -826,26 +1129,80 @@ function generateTeams() {
     return;
   }
 
-  const shuffled = [...members];
-  for (let i = shuffled.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-  }
-
+  const isGenderBalance = document.getElementById("genderBalanceCheckbox")?.checked;
   const divideMethod = document.getElementById("divideByGroupsBtn").classList.contains("active") ? "groups" : "members";
   const countVal = Math.max(1, parseInt(document.getElementById("divideCountInput").value, 10) || 2);
 
   let numGroups = 2;
   if (divideMethod === "groups") {
-    numGroups = Math.min(countVal, shuffled.length);
+    numGroups = Math.min(countVal, members.length);
   } else {
-    numGroups = Math.max(1, Math.ceil(shuffled.length / countVal));
+    numGroups = Math.max(1, Math.ceil(members.length / countVal));
   }
 
   const groups = Array.from({ length: numGroups }, () => []);
-  shuffled.forEach((member, index) => {
-    groups[index % numGroups].push(member);
-  });
+
+  if (isGenderBalance) {
+    const males = [];
+    const females = [];
+    const others = [];
+
+    members.forEach(m => {
+      const g = parseMemberGender(m).gender;
+      if (g === "M") males.push(m);
+      else if (g === "F") females.push(m);
+      else others.push(m);
+    });
+
+    // Fisher-Yates shuffle each subgroup
+    const shuffleArray = (arr) => {
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+    };
+
+    shuffleArray(males);
+    shuffleArray(females);
+    shuffleArray(others);
+
+    // 1. Distribute males round-robin across groups
+    males.forEach((m, idx) => {
+      groups[idx % numGroups].push(m);
+    });
+
+    // 2. Distribute females prioritizing groups with fewer members to maintain balance
+    females.forEach(f => {
+      let minIdx = 0;
+      for (let i = 1; i < numGroups; i++) {
+        if (groups[i].length < groups[minIdx].length) {
+          minIdx = i;
+        }
+      }
+      groups[minIdx].push(f);
+    });
+
+    // 3. Distribute others to smallest groups
+    others.forEach(o => {
+      let minIdx = 0;
+      for (let i = 1; i < numGroups; i++) {
+        if (groups[i].length < groups[minIdx].length) {
+          minIdx = i;
+        }
+      }
+      groups[minIdx].push(o);
+    });
+  } else {
+    const shuffled = [...members];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+
+    shuffled.forEach((member, index) => {
+      groups[index % numGroups].push(member);
+    });
+  }
 
   currentGeneratedTeams = groups;
   generatedTeamsMap = {};
@@ -917,6 +1274,18 @@ function renderTeamCards(groups) {
     const title = getGroupTitle(idx, groups.length);
     const theme = TEAM_COLOR_THEMES[idx % TEAM_COLOR_THEMES.length];
 
+    let boyCount = 0;
+    let girlCount = 0;
+    teamMembers.forEach(m => {
+      const g = parseMemberGender(m).gender;
+      if (g === "M") boyCount++;
+      else if (g === "F") girlCount++;
+    });
+
+    const genderStatsBadge = (boyCount > 0 || girlCount > 0)
+      ? `<span class="team-card-gender-pill"><span class="m-stat">👦 ${boyCount}</span> · <span class="f-stat">👧 ${girlCount}</span></span>`
+      : "";
+
     const card = document.createElement("div");
     card.className = "team-card";
     card.style.background = theme.bg;
@@ -924,18 +1293,27 @@ function renderTeamCards(groups) {
 
     card.innerHTML = `
       <div class="team-card-header">
-        <span class="team-card-title">${escapeHtml(title)}</span>
+        <div class="team-card-title-group">
+          <span class="team-card-title">${escapeHtml(title)}</span>
+          ${genderStatsBadge}
+        </div>
         <span class="team-card-badge" style="background:${theme.badge}22; color:${theme.badge}; border: 1px solid ${theme.badge}55;">
           ${teamMembers.length}${TRANSLATIONS[currentLang].membersSuffix}
         </span>
       </div>
       <ul class="team-card-members">
-        ${teamMembers.map((m, mIdx) => `
-          <li class="team-member-item">
-            <span>${escapeHtml(m)}</span>
-            ${getMemberRoleBadge(mIdx)}
-          </li>
-        `).join("")}
+        ${teamMembers.map((m, mIdx) => {
+          const parsed = parseMemberGender(m);
+          return `
+            <li class="team-member-item">
+              <span class="member-name-wrap">
+                ${parsed.icon ? `<span class="member-gender-icon">${parsed.icon}</span>` : ""}
+                <span class="member-name-text">${escapeHtml(parsed.name)}</span>
+              </span>
+              ${getMemberRoleBadge(mIdx)}
+            </li>
+          `;
+        }).join("")}
       </ul>
     `;
 
@@ -962,7 +1340,7 @@ function copyTeamsToClipboard() {
 }
 
 // ==========================================================================
-// 9. EXCEL / CSV EXPORT WITH UTF-8 BOM
+// 9. EXCEL / CSV EXPORT WITH UTF-8 BOM & GENDER COLUMN
 // ==========================================================================
 function downloadCsv(filename, csvContent) {
   // UTF-8 BOM (\uFEFF) ensures Khmer Unicode renders cleanly in Microsoft Excel
@@ -983,10 +1361,17 @@ function exportTeamsToCsv() {
   }
   if (currentGeneratedTeams.length === 0) return;
 
-  let csv = "Group,Member Name,Role\n";
+  let csv = "Group,Member Name,Gender,Role\n";
   currentGeneratedTeams.forEach((teamMembers, idx) => {
     const groupName = getGroupTitle(idx, currentGeneratedTeams.length);
     teamMembers.forEach((member, mIdx) => {
+      const parsed = parseMemberGender(member);
+      const genderLabel = parsed.gender === "M"
+        ? TRANSLATIONS[currentLang].boyLabel
+        : parsed.gender === "F"
+          ? TRANSLATIONS[currentLang].girlLabel
+          : TRANSLATIONS[currentLang].unspecifiedLabel;
+
       const roles = [
         TRANSLATIONS[currentLang].roleLeader,
         TRANSLATIONS[currentLang].roleSecretary,
@@ -994,7 +1379,7 @@ function exportTeamsToCsv() {
         TRANSLATIONS[currentLang].roleTimer
       ];
       const role = roles[mIdx] || TRANSLATIONS[currentLang].roleMember;
-      csv += `"${groupName}","${member.replace(/"/g, '""')}","${role}"\n`;
+      csv += `"${groupName}","${parsed.name.replace(/"/g, '""')}","${genderLabel}","${role}"\n`;
     });
   });
 
@@ -1222,6 +1607,10 @@ function switchMode(newMode) {
 
   const wheelPanel = document.getElementById("wheelViewPanel");
   const teamMakerPanel = document.getElementById("teamMakerPanel");
+  const genderFilterBar = document.getElementById("wheelGenderFilterBar");
+  const sidebarGenderHint = document.getElementById("sidebarGenderHint");
+  const sidebarMaleBadge = document.getElementById("sidebarMaleBadge");
+  const sidebarFemaleBadge = document.getElementById("sidebarFemaleBadge");
 
   if (newMode === "team-maker") {
     wheelPanel.classList.add("hidden");
@@ -1234,6 +1623,24 @@ function switchMode(newMode) {
   } else {
     wheelPanel.classList.remove("hidden");
     teamMakerPanel.classList.add("hidden");
+
+    if (genderFilterBar) {
+      if (newMode === "spin-groups") {
+        genderFilterBar.classList.add("hidden");
+      } else {
+        genderFilterBar.classList.remove("hidden");
+      }
+    }
+    if (sidebarGenderHint) {
+      sidebarGenderHint.style.display = newMode === "spin-groups" ? "none" : "flex";
+    }
+    if (sidebarMaleBadge) {
+      sidebarMaleBadge.style.display = newMode === "spin-groups" ? "none" : "inline-flex";
+    }
+    if (sidebarFemaleBadge) {
+      sidebarFemaleBadge.style.display = newMode === "spin-groups" ? "none" : "inline-flex";
+    }
+
     updateSidebarTitle();
     updateTextareaFromState();
     updateItemCount();
@@ -1410,12 +1817,42 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("awardStarBtn").addEventListener("click", triggerAwardStar);
   document.getElementById("shareWinnerTelegramBtn").addEventListener("click", shareWinnerToTelegram);
 
+  // Wheel Gender Filter Listeners
+  const filterAllBtn = document.getElementById("filterAllBtn");
+  const filterMaleBtn = document.getElementById("filterMaleBtn");
+  const filterFemaleBtn = document.getElementById("filterFemaleBtn");
+  const pairDrawBtn = document.getElementById("pairDrawBtn");
+
+  function setGenderFilter(filter) {
+    genderWheelFilter = filter;
+    if (filterAllBtn) filterAllBtn.classList.toggle("active", filter === "all");
+    if (filterMaleBtn) filterMaleBtn.classList.toggle("active", filter === "M");
+    if (filterFemaleBtn) filterFemaleBtn.classList.toggle("active", filter === "F");
+    drawWheel();
+  }
+
+  if (filterAllBtn) filterAllBtn.addEventListener("click", () => setGenderFilter("all"));
+  if (filterMaleBtn) filterMaleBtn.addEventListener("click", () => setGenderFilter("M"));
+  if (filterFemaleBtn) filterFemaleBtn.addEventListener("click", () => setGenderFilter("F"));
+  if (pairDrawBtn) pairDrawBtn.addEventListener("click", startPairDraw);
+
   // Winner Modal Action Buttons
   document.getElementById("removeWinnerBtn").addEventListener("click", () => {
-    if (currentWinnerIndex >= 0) {
-      const items = [...getActiveItems()];
-      items.splice(currentWinnerIndex, 1);
-      setActiveItems(items);
+    if (currentPairWinners) {
+      namesList = namesList.filter(n => n !== currentPairWinners.boy && n !== currentPairWinners.girl);
+      currentPairWinners = null;
+      currentWinnerIndex = -1;
+      setActiveItems(namesList);
+    } else if (currentWinnerIndex >= 0) {
+      const items = getWheelItems();
+      const winnerItem = items[currentWinnerIndex];
+      if (currentMode === "spin-groups") {
+        groupsList = groupsList.filter(g => g !== winnerItem);
+        setActiveItems(groupsList);
+      } else {
+        namesList = namesList.filter(n => n !== winnerItem);
+        setActiveItems(namesList);
+      }
       currentWinnerIndex = -1;
     }
     hideWinnerModal();
@@ -1499,6 +1936,15 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("copyTeamsResultBtn").addEventListener("click", copyTeamsToClipboard);
   document.getElementById("exportTeamsCsvBtn").addEventListener("click", exportTeamsToCsv);
   document.getElementById("shareTeamsTelegramBtn").addEventListener("click", shareTeamsToTelegram);
+
+  const genderBalanceCheckbox = document.getElementById("genderBalanceCheckbox");
+  if (genderBalanceCheckbox) {
+    genderBalanceCheckbox.addEventListener("change", () => {
+      if (currentGeneratedTeams.length > 0) {
+        generateTeams();
+      }
+    });
+  }
 
   // Keyboard Shortcuts
   window.addEventListener("keydown", (e) => {

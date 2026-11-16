@@ -95,6 +95,22 @@
       <!-- SECTION 1 & 2: WHEEL MODES (Names & Groups) -->
       <div class="view-panel" id="wheelViewPanel">
         <div class="wheel-stage">
+          <!-- Gender Filter Pills for Wheel -->
+          <div class="wheel-filter-bar" id="wheelGenderFilterBar">
+            <button class="filter-pill-btn active" data-filter="all" id="filterAllBtn">
+              <span>🌐</span> <span data-i18n="filterAll">ទាំងអស់</span> <span class="filter-badge" id="badgeAll">0</span>
+            </button>
+            <button class="filter-pill-btn male" data-filter="M" id="filterMaleBtn">
+              <span>👦</span> <span data-i18n="filterMale">សិស្សប្រុស</span> <span class="filter-badge" id="badgeMale">0</span>
+            </button>
+            <button class="filter-pill-btn female" data-filter="F" id="filterFemaleBtn">
+              <span>👧</span> <span data-i18n="filterFemale">សិស្សស្រី</span> <span class="filter-badge" id="badgeFemale">0</span>
+            </button>
+            <button class="filter-pill-btn pair" id="pairDrawBtn" title="ចាប់ឆ្នោតជាគូ (ប្រុស ១ + ស្រី ១)">
+              <span>👫</span> <span data-i18n="pairDraw">ចាប់ជាគូ (👫)</span>
+            </button>
+          </div>
+
           <!-- Wheel Canvas Container -->
           <div class="wheel-wrapper">
             <div class="wheel-pointer-container">
@@ -128,7 +144,11 @@
           <div class="sidebar-header">
             <div class="sidebar-title-wrap">
               <h2 id="sidebarListTitle" data-i18n="listTitleNames">បញ្ជីឈ្មោះចូលរួម</h2>
-              <span class="count-badge" id="itemCountBadge">0</span>
+              <div class="badges-row">
+                <span class="count-badge" id="itemCountBadge">0</span>
+                <span class="gender-mini-pill male" id="sidebarMaleBadge">👦 0</span>
+                <span class="gender-mini-pill female" id="sidebarFemaleBadge">👧 0</span>
+              </div>
             </div>
             <div class="quick-presets">
               <select id="presetSelect" class="preset-dropdown">
@@ -143,6 +163,10 @@
 
           <div class="textarea-container">
             <textarea id="entriesTextarea" placeholder="បញ្ចូលឈ្មោះមួយក្នុងមួយបន្ទាត់..."></textarea>
+          </div>
+          <div class="gender-helper-hint" id="sidebarGenderHint">
+            <span class="hint-icon">💡</span>
+            <span data-i18n="genderTip">សម្គាល់យេនឌ័រ៖ (ប)/(M) = ប្រុស, (ស)/(F) = ស្រី</span>
           </div>
 
           <div class="sidebar-toolbar">
@@ -188,9 +212,19 @@
               <div class="team-input-column">
                 <div class="column-title-row">
                   <label for="teamNamesInput" data-i18n="teamNamesLabel">បញ្ជីសមាជិកទាំងអស់</label>
-                  <span class="count-badge" id="teamMembersCountBadge">0</span>
+                  <div class="badges-row">
+                    <span class="count-badge" id="teamMembersCountBadge">0</span>
+                    <span class="gender-mini-pill male" id="teamMaleBadge">👦 0</span>
+                    <span class="gender-mini-pill female" id="teamFemaleBadge">👧 0</span>
+                  </div>
                 </div>
-                <textarea id="teamNamesInput" placeholder="បញ្ចូលឈ្មោះសមាជិក (មួយឈ្មោះក្នុងមួយបន្ទាត់)..."></textarea>
+                <div class="textarea-container">
+                  <textarea id="teamNamesInput" placeholder="បញ្ចូលឈ្មោះសមាជិក (មួយឈ្មោះក្នុងមួយបន្ទាត់)..."></textarea>
+                </div>
+                <div class="gender-helper-hint">
+                  <span class="hint-icon">💡</span>
+                  <span data-i18n="genderTip">សម្គាល់យេនឌ័រ៖ (ប)/(M) = ប្រុស, (ស)/(F) = ស្រី</span>
+                </div>
                 <div class="team-input-actions">
                   <button class="sub-btn" id="syncFromWheelBtn">
                     <span>📥</span> <span data-i18n="syncFromWheel">ទាញយកពីកង</span>
@@ -239,6 +273,15 @@
                       <input type="checkbox" id="autoAssignRolesCheckbox" checked>
                       <span class="checkmark"></span>
                       <span class="checkbox-label" data-i18n="autoAssignRoles">👑 បែងចែកតួនាទីក្នុងក្រុមស្វ័យប្រវត្ត (Leader, Secretary...)</span>
+                    </label>
+                  </div>
+
+                  <!-- Gender-Balanced Teams Checkbox -->
+                  <div class="gender-balance-toggle">
+                    <label class="checkbox-container">
+                      <input type="checkbox" id="genderBalanceCheckbox" checked>
+                      <span class="checkmark"></span>
+                      <span class="checkbox-label" data-i18n="genderBalanceToggle">⚖️ ធានាតុល្យភាពយេនឌ័រ (ស្មើប្រុស/ស្រីក្នុងគ្រប់ក្រុម)</span>
                     </label>
                   </div>
 
