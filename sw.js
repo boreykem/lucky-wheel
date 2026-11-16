@@ -3,12 +3,12 @@
  * Ensures 100% offline functionality in classrooms and halls with low/no internet
  */
 
-const CACHE_NAME = 'lucky-wheel-cache-v2.4';
+const CACHE_NAME = 'lucky-wheel-cache-v2.5';
 const STATIC_ASSETS = [
   './',
   './index.html',
-  './style.css?v=2.4',
-  './app.js?v=2.4',
+  './style.css?v=2.5',
+  './app.js?v=2.5',
   './ac-mart-logo.png',
   './manifest.json',
   'https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js'
