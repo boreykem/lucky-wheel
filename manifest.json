@@ -1,0 +1,24 @@
+{
+  "name": "Lucky Wheel & Team Maker | បង្វិលកង ចាប់ឆ្នោត",
+  "short_name": "Lucky Wheel",
+  "description": "កម្មវិធីបង្វិលកងចាប់ឆ្នោត ជ្រើសរើសឈ្មោះ & បែងចែកក្រុមដោយចៃដន្យ - Lucky Wheel and Random Team Generator",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#4f46e5",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "ac-mart-logo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "ac-mart-logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

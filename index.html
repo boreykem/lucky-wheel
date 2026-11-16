@@ -5,13 +5,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lucky Wheel & Group Maker | បង្វិលកង ចាប់ឆ្នោត & ចែកក្រុម</title>
   <meta name="description" content="កម្មវិធីបង្វិលកងចាប់ឆ្នោត ជ្រើសរើសឈ្មោះ ជ្រើសរើសក្រុម និងបែងចែកក្រុមដោយចៃដន្យ - Lucky Wheel and Random Team Generator by AC Mart">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#4f46e5">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="apple-touch-icon" href="ac-mart-logo.png">
   <!-- Google Fonts: Kantumruy Pro (Khmer) and Outfit (English) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Kantumruy+Pro:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <!-- Canvas Confetti CDN -->
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
-  <link rel="stylesheet" href="style.css?v=2.2">
+  <link rel="stylesheet" href="style.css?v=2.3">
 </head>
 <body class="lang-km">
   <div class="app-container">
@@ -62,6 +67,32 @@
           </button>
           <input type="file" id="restoreFileInput" accept=".json" style="display:none;">
         </div>
+
+        <!-- Wheel Theme Selector -->
+        <div class="theme-picker-wrap">
+          <select id="themeSelector" class="theme-select" title="ស្ទីលពណ៌កង | Wheel Theme">
+            <option value="theme-neon" data-i18n="themeNeon">🌌 Cyber Neon</option>
+            <option value="theme-chalkboard" data-i18n="themeChalkboard">🏫 ក្តារខៀន (Chalkboard)</option>
+            <option value="theme-khmer-gold" data-i18n="themeKhmerGold">👑 មាសខ្មែរ (Khmer Gold)</option>
+            <option value="theme-pastel" data-i18n="themePastel">🧁 ឥន្ទធនូស្រទន់ (Pastel)</option>
+          </select>
+        </div>
+
+        <!-- Scoreboard & Leaderboard Button -->
+        <button class="icon-btn scoreboard-nav-btn" id="scoreboardBtn" title="តារាងពិន្ទុ & ចំណាត់ថ្នាក់ | Scoreboard & Leaderboard">
+          <span>🏆</span>
+          <span class="btn-badge" id="scoreboardTotalStars">0</span>
+        </button>
+
+        <!-- Projector Mode Toggle -->
+        <button class="icon-btn" id="projectorBtn" title="របៀបបញ្ចាំងស្លាយ | Projector Mode (P)">
+          <span>📺</span>
+        </button>
+
+        <!-- PWA Install Button (Unhidden on beforeinstallprompt) -->
+        <button class="icon-btn pwa-install-btn hidden" id="installAppBtn" title="ដំឡើង App | Install PWA">
+          <span>📲</span>
+        </button>
 
         <!-- QR Code Share Button -->
         <button class="icon-btn" id="qrShareBtn" title="QR Code & ចែករំលែក | QR Code & Share">
@@ -156,14 +187,49 @@
                 <option value="khmer-students" data-i18n="presetKhmerStudents">សិស្ស (គំរូឈ្មោះខ្មែរ)</option>
                 <option value="team-alpha" data-i18n="presetTeams">ក្រុមទី១ ដល់ ក្រុមទី៦</option>
                 <option value="lucky-numbers" data-i18n="presetNumbers">លេខរង្វាន់ (១ ដល់ ២០)</option>
+                <option value="classroom-rewards" data-i18n="presetClassroomRewards">📚 រង្វាន់សម្ភារៈសិក្សា</option>
                 <option value="prizes" data-i18n="presetPrizes">រង្វាន់ & ភេសជ្ជៈ</option>
               </select>
             </div>
           </div>
 
-          <div class="textarea-container">
+          <!-- Attendance vs Text Editor Tab Switcher -->
+          <div class="sidebar-view-toggle">
+            <button class="view-toggle-btn active" id="viewTextBtn" data-view="text">
+              <span>📝</span> <span data-i18n="tabEditor">កែសម្រួល</span>
+            </button>
+            <button class="view-toggle-btn" id="viewAttendanceBtn" data-view="attendance">
+              <span>📋</span> <span data-i18n="tabAttendance">វត្តមាន</span>
+              <span class="attendance-summary-badge" id="attendanceSummaryBadge">0 មក</span>
+            </button>
+          </div>
+
+          <!-- Text Editor Container -->
+          <div class="textarea-container" id="editorViewContainer">
             <textarea id="entriesTextarea" placeholder="បញ្ចូលឈ្មោះមួយក្នុងមួយបន្ទាត់..."></textarea>
           </div>
+
+          <!-- Interactive Attendance Checklist Container -->
+          <div class="attendance-container hidden" id="attendanceViewContainer">
+            <div class="attendance-toolbar">
+              <input type="text" id="attendanceSearchInput" class="attendance-search-input" placeholder="ស្វែងរកឈ្មោះ... | Search...">
+              <div class="attendance-quick-actions">
+                <button class="sub-btn small" id="markAllPresentBtn" title="វត្តមានទាំងអស់">
+                  <span>✅</span> <span data-i18n="allPresent">មកទាំងអស់</span>
+                </button>
+                <button class="sub-btn small" id="markAllAbsentBtn" title="អវត្តមានទាំងអស់">
+                  <span>❌</span> <span data-i18n="allAbsent">អវត្តមានទាំងអស់</span>
+                </button>
+              </div>
+            </div>
+            <div class="attendance-checklist" id="attendanceChecklist">
+              <!-- Dynamically populated with interactive student rows -->
+            </div>
+            <div class="attendance-footer-note">
+              <span>💡</span> <span data-i18n="attendanceNote">ឈ្មោះដែលអវត្តមាន (❌) នឹងមិនត្រូវបានបង្វិលកង ឬបែងចែកក្រុមឡើយ។</span>
+            </div>
+          </div>
+
           <div class="gender-helper-hint" id="sidebarGenderHint">
             <span class="hint-icon">💡</span>
             <span data-i18n="genderTip">សម្គាល់យេនឌ័រ៖ (ប)/(M) = ប្រុស, (ស)/(F) = ស្រី</span>
@@ -350,6 +416,7 @@
         <!-- Pinned Header: Title & Winner Name -->
         <div class="winner-modal-header">
           <div class="confetti-cannon-icon">🎊</div>
+          <div class="winner-avatar-spotlight hidden" id="winnerAvatarSpotlight"></div>
           <h3 class="modal-title" data-i18n="winnerAnnounce">អបអរសាទរ! អ្នកឈ្នះគឺ</h3>
           <div class="winner-display-name" id="winnerNameDisplay">-</div>
         </div>
@@ -447,10 +514,73 @@
       </div>
     </div>
 
+    <!-- SCOREBOARD & LEADERBOARD MODAL DIALOG -->
+    <div class="modal-overlay hidden" id="scoreboardModalOverlay">
+      <div class="scoreboard-modal-card">
+        <button class="modal-close-corner" id="closeScoreboardModalBtn" title="បិទ | Close">✕</button>
+        <div class="scoreboard-modal-header">
+          <div class="scoreboard-header-title">
+            <span class="trophy-big-icon">🏆</span>
+            <div>
+              <h3 data-i18n="scoreboardTitle">តារាងពិន្ទុ & ចំណាត់ថ្នាក់ផ្កាយ</h3>
+              <p class="scoreboard-subtitle" data-i18n="scoreboardSubtitle">Classroom Star Leaderboard & Points Tracking</p>
+            </div>
+          </div>
+          <div class="scoreboard-mode-tabs">
+            <button class="score-tab-btn active" id="scoreTabStudents" data-tab="students">
+              <span>⭐</span> <span data-i18n="tabStudentsScore">ពិន្ទុសិស្ស</span>
+            </button>
+            <button class="score-tab-btn" id="scoreTabGroups" data-tab="groups">
+              <span>👥</span> <span data-i18n="tabGroupsScore">ពិន្ទុក្រុម</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="scoreboard-modal-body">
+          <!-- Student Leaderboard Table / Cards -->
+          <div class="scoreboard-content-panel" id="scoreboardStudentsPanel">
+            <div class="scoreboard-table-header">
+              <span class="col-rank">#</span>
+              <span class="col-name" data-i18n="colStudentName">ឈ្មោះសិស្ស</span>
+              <span class="col-stars" data-i18n="colStars">ផ្កាយ/ពិន្ទុ</span>
+              <span class="col-actions" data-i18n="colAction">កែប្រែ</span>
+            </div>
+            <div class="scoreboard-list" id="scoreboardStudentsList">
+              <!-- Dynamically populated rows -->
+            </div>
+          </div>
+
+          <!-- Group Scores Panel -->
+          <div class="scoreboard-content-panel hidden" id="scoreboardGroupsPanel">
+            <div class="scoreboard-groups-grid" id="scoreboardGroupsGrid">
+              <!-- Dynamically populated group score cards -->
+            </div>
+          </div>
+        </div>
+
+        <div class="scoreboard-modal-footer">
+          <button class="sub-btn" id="exportScoreboardCsvBtn">
+            <span>📊</span> <span data-i18n="exportCsv">Excel / CSV</span>
+          </button>
+          <button class="sub-btn danger" id="resetScoreboardBtn">
+            <span>🔄</span> <span data-i18n="resetScores">កំណត់ពិន្ទុឡើងវិញ</span>
+          </button>
+          <button class="sub-btn primary-glow" id="closeScoreboardFooterBtn">
+            <span>✅</span> <span data-i18n="done">រួចរាល់</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Projector Mode Floating Exit Button -->
+    <button class="projector-exit-btn hidden" id="projectorExitBtn" title="ចាកចេញពីរបៀបបញ្ចាំង (ESC)">
+      <span>✕</span> <span data-i18n="exitProjector">ចាកចេញពីបញ្ចាំងស្លាយ</span>
+    </button>
+
     <!-- Toast Notification -->
     <div class="toast-notification hidden" id="toastNotification"></div>
   </div>
 
-  <script src="app.js?v=2.2"></script>
+  <script src="app.js?v=2.3"></script>
 </body>
 </html>

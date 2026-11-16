@@ -99,7 +99,32 @@ const TRANSLATIONS = {
     girlLabel: "ស្រី (Female)",
     unspecifiedLabel: "មិនបញ្ជាក់ (Unspecified)",
     removeBothWinners: "ដកឈ្មោះទាំងពីរចេញ",
-    keepBothWinners: "រក្សាទុកទាំងពីរ"
+    keepBothWinners: "រក្សាទុកទាំងពីរ",
+    tabEditor: "កែសម្រួល",
+    tabAttendance: "វត្តមាន",
+    allPresent: "មកទាំងអស់",
+    allAbsent: "អវត្តមានទាំងអស់",
+    attendanceNote: "ឈ្មោះដែលអវត្តមាន (❌) នឹងមិនត្រូវបានបង្វិលកង ឬបែងចែកក្រុមឡើយ។",
+    presentLabel: "មក",
+    absentLabel: "អវត្តមាន",
+    installApp: "ដំឡើង App",
+    themeNeon: "🌌 Cyber Neon",
+    themeChalkboard: "🏫 ក្តារខៀន (Chalkboard)",
+    themeKhmerGold: "👑 មាសខ្មែរ (Khmer Gold)",
+    themePastel: "🧁 ឥន្ទធនូស្រទន់ (Pastel)",
+    scoreboardTitle: "តារាងពិន្ទុ & ចំណាត់ថ្នាក់ផ្កាយ",
+    scoreboardSubtitle: "Classroom Star Leaderboard & Points Tracking",
+    tabStudentsScore: "ពិន្ទុសិស្ស",
+    tabGroupsScore: "ពិន្ទុក្រុម",
+    colStudentName: "ឈ្មោះសិស្ស",
+    colStars: "ផ្កាយ/ពិន្ទុ",
+    colAction: "កែប្រែ",
+    resetScores: "កំណត់ពិន្ទុឡើងវិញ",
+    done: "រួចរាល់",
+    exitProjector: "ចាកចេញពីបញ្ចាំងស្លាយ",
+    presetClassroomRewards: "📚 រង្វាន់សម្ភារៈសិក្សា",
+    scoresResetConfirm: "តើអ្នកពិតជាចង់កំណត់ពិន្ទុសិស្សទាំងអស់ទៅ 0 វិញមែនទេ?",
+    starAwardedToast: "⭐ បានផ្តល់ផ្កាយជូន "
   },
   en: {
     appTitle: "Lucky Spin Wheel",
@@ -117,6 +142,7 @@ const TRANSLATIONS = {
     presetKhmerStudents: "Students (Khmer Names)",
     presetTeams: "Group 1 to Group 6",
     presetNumbers: "Lucky Numbers (1 to 20)",
+    presetClassroomRewards: "📚 Classroom Rewards",
     presetPrizes: "Prizes & Drinks",
     defaultClass: "🏫 General Class (Default)",
     saveClassBtn: "Save Classroom",
@@ -192,7 +218,32 @@ const TRANSLATIONS = {
     girlLabel: "Female",
     unspecifiedLabel: "Unspecified",
     removeBothWinners: "Remove Both",
-    keepBothWinners: "Keep Both"
+    keepBothWinners: "Keep Both",
+    tabEditor: "Editor",
+    tabAttendance: "Attendance",
+    allPresent: "All Present",
+    allAbsent: "All Absent",
+    attendanceNote: "Absent students (❌) are automatically excluded from wheel spins and team generation.",
+    presentLabel: "Present",
+    absentLabel: "Absent",
+    installApp: "Install App",
+    themeNeon: "🌌 Cyber Neon",
+    themeChalkboard: "🏫 Chalkboard",
+    themeKhmerGold: "👑 Khmer Gold",
+    themePastel: "🧁 Pastel Rainbow",
+    scoreboardTitle: "Scoreboard & Star Leaderboard",
+    scoreboardSubtitle: "Classroom Star Leaderboard & Points Tracking",
+    tabStudentsScore: "Student Stars",
+    tabGroupsScore: "Team Points",
+    colStudentName: "Student Name",
+    colStars: "Stars/Points",
+    colAction: "Adjust",
+    resetScores: "Reset Scores",
+    done: "Done",
+    exitProjector: "Exit Projector Mode",
+    presetClassroomRewards: "📚 Classroom Rewards",
+    scoresResetConfirm: "Are you sure you want to reset all student stars to 0?",
+    starAwardedToast: "⭐ Awarded star to "
   }
 };
 
@@ -232,18 +283,63 @@ const PRESETS = {
     "ក្រុមទី ៤ (Group 4)", "ក្រុមទី ៥ (Group 5)", "ក្រុមទី ៦ (Group 6)"
   ],
   "lucky-numbers": Array.from({ length: 20 }, (_, i) => `លេខ ${i + 1} (#${i + 1})`),
+  "classroom-rewards": [
+    "📚 សៀវភៅសរសេរ ១ ក្បាល (Notebook)",
+    "🖊️ ប៊ិចទឹកស្អាត ១ ដើម (Gel Pen)",
+    "🍬 ស្ករគ្រាប់ផ្អែម ៣ គ្រាប់ (Candies)",
+    "⭐ បូក ៥ ពិន្ទុបន្ថែម (+5 Extra Points)",
+    "👑 ប្រធានថ្នាក់កិត្តិយស ១ ថ្ងៃ (Honor Leader)",
+    "🥤 ភេសជ្ជៈត្រជាក់ ១ កំប៉ុង (Cold Drink)",
+    "🎯 លើកលែងកិច្ចការផ្ទះ ១ លើក (Homework Pass)",
+    "🍿 បង្វិលម្តងទៀត (Spin Again)"
+  ],
   "prizes": [
     "🎁 រង្វាន់ធំ (Grand Prize)", "☕ កាហ្វេ ១ កែវ (Free Coffee)", "🥤 តែគុជ ១ កែវ (Boba Tea)",
     "💵 លុយសុទ្ធ 50$ (Cash $50)", "🍕 ភីហ្សា ១ ថាស (Pizza Box)", "🍿 បង្វិលម្តងទៀត (Spin Again)"
   ]
 };
 
-// Slices colors
-const SLICE_COLORS = [
-  "#4f46e5", "#06b6d4", "#ec4899", "#f59e0b", 
-  "#10b981", "#8b5cf6", "#f43f5e", "#14b8a6", 
-  "#3b82f6", "#eab308", "#d946ef", "#0284c7"
-];
+// Slices colors & dynamic theme palettes
+const THEME_PALETTES = {
+  "theme-neon": {
+    slices: [
+      "#4f46e5", "#06b6d4", "#ec4899", "#f59e0b", 
+      "#10b981", "#8b5cf6", "#f43f5e", "#14b8a6", 
+      "#3b82f6", "#eab308", "#d946ef", "#0284c7"
+    ],
+    rim: "#1e1b4b",
+    pin: "#fbbf24"
+  },
+  "theme-chalkboard": {
+    slices: [
+      "#2d6a4f", "#1b4332", "#40916c", "#52b788", 
+      "#74c69d", "#081c15", "#283618", "#606c38", 
+      "#344e41", "#3a5a40", "#4f772d", "#31572c"
+    ],
+    rim: "#2d3748",
+    pin: "#fefae0"
+  },
+  "theme-khmer-gold": {
+    slices: [
+      "#d97706", "#b45309", "#92400e", "#eab308", 
+      "#f59e0b", "#78350f", "#854d0e", "#ca8a04", 
+      "#a16207", "#b7791f", "#d69e2e", "#b91c1c"
+    ],
+    rim: "#451a03",
+    pin: "#fef08a"
+  },
+  "theme-pastel": {
+    slices: [
+      "#fda4af", "#f9a8d4", "#f0abfc", "#c4b5fd", 
+      "#a5b4fc", "#93c5fd", "#67e8f9", "#5eead4", 
+      "#86efac", "#fde047", "#fca5a5", "#fed7aa"
+    ],
+    rim: "#4b5563",
+    pin: "#f43f5e"
+  }
+};
+
+const SLICE_COLORS = THEME_PALETTES["theme-neon"].slices;
 
 // Team cards visual themes
 const TEAM_COLOR_THEMES = [
@@ -259,6 +355,7 @@ const TEAM_COLOR_THEMES = [
 // 2. STATE MANAGEMENT & GENDER PARSER
 // ==========================================================================
 let currentLang = localStorage.getItem("lucky_wheel_lang") || "km";
+let currentTheme = localStorage.getItem("lucky_wheel_theme") || "theme-neon";
 let currentMode = "spin-names";
 let soundEnabled = true;
 
@@ -266,6 +363,12 @@ let genderWheelFilter = "all"; // "all" | "M" | "F"
 let currentPairWinners = null; // null or { boy: string, girl: string }
 
 let savedClasses = JSON.parse(localStorage.getItem("lucky_wheel_classes") || "{}");
+let absentSet = new Set(JSON.parse(localStorage.getItem("lucky_wheel_absent") || "[]"));
+let studentScores = JSON.parse(localStorage.getItem("lucky_wheel_scores") || "{}");
+let activeSidebarTab = "text"; // "text" | "attendance"
+let deferredInstallPrompt = null;
+let isProjectorMode = false;
+let scoreboardActiveTab = "students"; // "students" | "groups"
 
 let namesList = [
   "សុខា (Sokha) (ប)", "បូផា (Bopha) (ស)", "តារា (Dara) (ប)", "ចិន្តា (Chinda) (ស)", 
@@ -352,6 +455,13 @@ function parseMemberGender(rawName) {
     gender: "U",
     icon: ""
   };
+}
+
+function extractPrizeOrAvatar(str) {
+  if (!str) return "";
+  // Check for emojis (Unicode Extended Pictographic)
+  const match = str.match(/(\p{Extended_Pictographic})/u);
+  return match ? match[1] : "";
 }
 
 let generatedTeamsMap = {}; // Maps team title -> array of member names
@@ -502,7 +612,7 @@ function setLanguage(lang) {
   localStorage.setItem("lucky_wheel_lang", lang);
 
   document.documentElement.lang = lang;
-  document.body.className = `lang-${lang}`;
+  document.body.className = `lang-${lang} ${currentTheme !== "theme-neon" ? currentTheme : ""}${isProjectorMode ? " projector-mode" : ""}`.trim();
 
   document.getElementById("langKm").classList.toggle("active", lang === "km");
   document.getElementById("langEn").classList.toggle("active", lang === "en");
@@ -521,6 +631,7 @@ function setLanguage(lang) {
 
   updateSidebarTitle();
   updateStepperLabel();
+  updateAttendanceView();
   rollNewChallenge();
   drawWheel();
 }
@@ -556,13 +667,15 @@ function getWheelItems() {
   if (currentMode === "spin-groups") {
     return groupsList;
   }
+  // Exclude absent students
+  const activeList = namesList.filter(n => !absentSet.has(n));
   if (genderWheelFilter === "M") {
-    return namesList.filter(n => parseMemberGender(n).gender === "M");
+    return activeList.filter(n => parseMemberGender(n).gender === "M");
   }
   if (genderWheelFilter === "F") {
-    return namesList.filter(n => parseMemberGender(n).gender === "F");
+    return activeList.filter(n => parseMemberGender(n).gender === "F");
   }
-  return namesList;
+  return activeList;
 }
 
 function setActiveItems(items) {
@@ -622,6 +735,9 @@ function updateItemCount() {
   if (teamMemberBadge) teamMemberBadge.textContent = namesList.length;
   if (teamMale) teamMale.textContent = `👦 ${boyCount}`;
   if (teamFemale) teamFemale.textContent = `👧 ${girlCount}`;
+
+  updateAttendanceView();
+  updateScoreboardTotalBadge();
 }
 
 function drawWheel() {
@@ -656,6 +772,8 @@ function drawWheel() {
         emptyMsg = currentLang === "km" ? "មិនទាន់មានឈ្មោះប្រុស (M/ប)" : "No male names found";
       } else if (genderWheelFilter === "F") {
         emptyMsg = currentLang === "km" ? "មិនទាន់មានឈ្មោះស្រី (F/ស)" : "No female names found";
+      } else if (namesList.length > 0 && items.length === 0) {
+        emptyMsg = currentLang === "km" ? "សិស្សទាំងអស់ត្រូវបានដាក់អវត្តមាន" : "All students marked absent";
       }
     }
     wheelCtx.fillText(emptyMsg, centerX, centerY);
@@ -663,6 +781,7 @@ function drawWheel() {
   }
 
   const sliceAngle = (2 * Math.PI) / items.length;
+  const palette = THEME_PALETTES[currentTheme] || THEME_PALETTES["theme-neon"];
 
   wheelCtx.save();
   wheelCtx.translate(centerX, centerY);
@@ -672,7 +791,7 @@ function drawWheel() {
   for (let i = 0; i < items.length; i++) {
     const startAngle = i * sliceAngle;
     const endAngle = startAngle + sliceAngle;
-    const color = SLICE_COLORS[i % SLICE_COLORS.length];
+    const color = palette.slices[i % palette.slices.length];
 
     wheelCtx.beginPath();
     wheelCtx.moveTo(0, 0);
@@ -700,6 +819,7 @@ function drawWheel() {
     wheelCtx.font = `600 ${fontSize}px 'Kantumruy Pro', Outfit, sans-serif`;
 
     const parsed = parseMemberGender(items[i]);
+    const prizeAvatar = extractPrizeOrAvatar(items[i]);
     let itemText = parsed.icon ? `${parsed.icon} ${parsed.name}` : parsed.raw;
     if (itemText.length > 22) {
       itemText = itemText.substring(0, 20) + "...";
@@ -713,7 +833,7 @@ function drawWheel() {
   wheelCtx.beginPath();
   wheelCtx.arc(0, 0, radius, 0, 2 * Math.PI);
   wheelCtx.lineWidth = 10;
-  wheelCtx.strokeStyle = "#1e1b4b";
+  wheelCtx.strokeStyle = palette.rim;
   wheelCtx.stroke();
 
   const totalPins = Math.max(12, items.length);
@@ -725,7 +845,7 @@ function drawWheel() {
 
     wheelCtx.beginPath();
     wheelCtx.arc(pinX, pinY, 4, 0, 2 * Math.PI);
-    wheelCtx.fillStyle = "#fbbf24";
+    wheelCtx.fillStyle = palette.pin;
     wheelCtx.fill();
     wheelCtx.lineWidth = 1;
     wheelCtx.strokeStyle = "#ffffff";
@@ -956,6 +1076,14 @@ function showWinnerModal(name) {
     nameDisplay.textContent = escapeHtml(parsed.name);
   }
 
+  // Feature 6: Avatar / Prize spotlight in winner header
+  const spotlightEl = document.getElementById("winnerAvatarSpotlight");
+  if (spotlightEl) {
+    const avatar = extractPrizeOrAvatar(name) || (parsed.icon ? parsed.icon : (parsed.gender === "M" ? "👦" : parsed.gender === "F" ? "👧" : "🎁"));
+    spotlightEl.textContent = avatar;
+    spotlightEl.classList.remove("hidden");
+  }
+
   // If spinning groups and this group has known members, display them beautifully
   const teamMembersBox = document.getElementById("winnerTeamMembersBox");
   const teamMembersList = document.getElementById("winnerTeamMembersList");
@@ -1015,6 +1143,12 @@ function showPairWinnerModal(boyRaw, girlRaw) {
   const boyParsed = parseMemberGender(boyRaw);
   const girlParsed = parseMemberGender(girlRaw);
 
+  const spotlightEl = document.getElementById("winnerAvatarSpotlight");
+  if (spotlightEl) {
+    spotlightEl.textContent = "👫";
+    spotlightEl.classList.remove("hidden");
+  }
+
   nameDisplay.innerHTML = `
     <div class="pair-winner-display">
       <div class="pair-card boy-card">
@@ -1045,6 +1179,8 @@ function hideWinnerModal() {
   clearInterval(countdownTimerId);
   const modal = document.getElementById("winnerModalOverlay");
   modal.classList.add("hidden");
+  const spotlightEl = document.getElementById("winnerAvatarSpotlight");
+  if (spotlightEl) spotlightEl.classList.add("hidden");
 }
 
 function startCountdown(seconds) {
@@ -1104,9 +1240,16 @@ function triggerAskFriend() {
 
 function triggerAwardStar() {
   if (winnersHistory.length > 0) {
-    winnersHistory[0].stars = (winnersHistory[0].stars || 0) + 1;
+    const topWinner = winnersHistory[0];
+    topWinner.stars = (topWinner.stars || 0) + 1;
+
+    // Feature 3: Automatically award star into studentScores leaderboard
+    const parsed = parseMemberGender(topWinner.name);
+    adjustStudentScore(parsed.name, 1);
+
     renderHistory();
     launchConfetti(0.4);
+    showToastNotification(TRANSLATIONS[currentLang].starAwardedToast + parsed.name + " (+1 ⭐)");
   }
 }
 
@@ -1142,10 +1285,13 @@ let currentGeneratedTeams = [];
 
 function generateTeams() {
   const inputVal = document.getElementById("teamNamesInput").value;
-  const members = inputVal
+  const rawMembers = inputVal
     .split("\n")
     .map(s => s.trim())
     .filter(s => s.length > 0);
+
+  // Feature 1: Exclude absent students
+  const members = rawMembers.filter(s => !absentSet.has(s));
 
   if (members.length < 2) {
     alert(TRANSLATIONS[currentLang].needMembersForTeams);
@@ -1356,6 +1502,7 @@ function renderTeamCards(groups) {
     container.appendChild(card);
   });
 
+  renderScoreboard();
   document.getElementById("teamResultsSection").scrollIntoView({ behavior: "smooth" });
 }
 
@@ -1717,14 +1864,376 @@ function updateTeamMemberCount() {
 }
 
 // ==========================================================================
+// FEATURE 1: ATTENDANCE / ABSENCE MANAGER
+// ==========================================================================
+function updateAttendanceView() {
+  const container = document.getElementById("attendanceChecklist");
+  if (!container) return;
+  const searchInput = document.getElementById("attendanceSearchInput");
+  const query = (searchInput?.value || "").toLowerCase().trim();
+
+  container.innerHTML = "";
+  const allNames = namesList;
+  let presentCount = 0;
+
+  allNames.forEach(rawName => {
+    const isAbsent = absentSet.has(rawName);
+    if (!isAbsent) presentCount++;
+
+    const parsed = parseMemberGender(rawName);
+    if (query && !parsed.name.toLowerCase().includes(query) && !rawName.toLowerCase().includes(query)) {
+      return;
+    }
+
+    const itemEl = document.createElement("div");
+    itemEl.className = `attendance-item ${isAbsent ? "absent" : "present"}`;
+
+    const infoEl = document.createElement("div");
+    infoEl.className = "attendance-student-info";
+    const genderIcon = parsed.icon || (parsed.gender === "M" ? "👦" : parsed.gender === "F" ? "👧" : "👤");
+    infoEl.innerHTML = `<span>${genderIcon}</span> <span class="attendance-name">${escapeHtml(parsed.name)}</span>`;
+
+    const chipEl = document.createElement("span");
+    chipEl.className = `attendance-status-chip ${isAbsent ? "absent" : "present"}`;
+    chipEl.innerHTML = isAbsent ? `❌ ${TRANSLATIONS[currentLang].absentLabel}` : `✅ ${TRANSLATIONS[currentLang].presentLabel}`;
+
+    itemEl.appendChild(infoEl);
+    itemEl.appendChild(chipEl);
+
+    itemEl.addEventListener("click", () => {
+      toggleStudentAttendance(rawName);
+    });
+
+    container.appendChild(itemEl);
+  });
+
+  const summaryBadge = document.getElementById("attendanceSummaryBadge");
+  if (summaryBadge) {
+    summaryBadge.textContent = `${presentCount}/${allNames.length} ${TRANSLATIONS[currentLang].presentLabel}`;
+  }
+}
+
+function toggleStudentAttendance(rawName) {
+  if (absentSet.has(rawName)) {
+    absentSet.delete(rawName);
+  } else {
+    absentSet.add(rawName);
+  }
+  localStorage.setItem("lucky_wheel_absent", JSON.stringify([...absentSet]));
+  updateAttendanceView();
+  updateItemCount();
+  drawWheel();
+}
+
+function markAllStudentsAttendance(present) {
+  if (present) {
+    absentSet.clear();
+  } else {
+    namesList.forEach(n => absentSet.add(n));
+  }
+  localStorage.setItem("lucky_wheel_absent", JSON.stringify([...absentSet]));
+  updateAttendanceView();
+  updateItemCount();
+  drawWheel();
+}
+
+function switchSidebarTab(tab) {
+  activeSidebarTab = tab;
+  const viewTextBtn = document.getElementById("viewTextBtn");
+  const viewAttendanceBtn = document.getElementById("viewAttendanceBtn");
+  const editorContainer = document.getElementById("editorViewContainer");
+  const attendanceContainer = document.getElementById("attendanceViewContainer");
+
+  if (tab === "attendance") {
+    viewAttendanceBtn?.classList.add("active");
+    viewTextBtn?.classList.remove("active");
+    editorContainer?.classList.add("hidden");
+    attendanceContainer?.classList.remove("hidden");
+    updateAttendanceView();
+  } else {
+    viewTextBtn?.classList.add("active");
+    viewAttendanceBtn?.classList.remove("active");
+    editorContainer?.classList.remove("hidden");
+    attendanceContainer?.classList.add("hidden");
+  }
+}
+
+// ==========================================================================
+// FEATURE 5: THEME CUSTOMIZATION
+// ==========================================================================
+function applyTheme(themeKey) {
+  currentTheme = themeKey;
+  localStorage.setItem("lucky_wheel_theme", themeKey);
+
+  document.body.classList.remove("theme-neon", "theme-chalkboard", "theme-khmer-gold", "theme-pastel");
+  if (themeKey !== "theme-neon") {
+    document.body.classList.add(themeKey);
+  }
+
+  const themeSelector = document.getElementById("themeSelector");
+  if (themeSelector) themeSelector.value = themeKey;
+
+  drawWheel();
+}
+
+// ==========================================================================
+// FEATURE 4: PROJECTOR & SMART TV FULLSCREEN MODE
+// ==========================================================================
+function toggleProjectorMode() {
+  isProjectorMode = !isProjectorMode;
+  const exitBtn = document.getElementById("projectorExitBtn");
+
+  if (isProjectorMode) {
+    document.body.classList.add("projector-mode");
+    exitBtn?.classList.remove("hidden");
+    if (currentMode === "team-maker") {
+      switchMode("spin-names");
+    }
+    if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
+      document.documentElement.requestFullscreen().catch(() => {});
+    }
+  } else {
+    document.body.classList.remove("projector-mode");
+    exitBtn?.classList.add("hidden");
+    if (document.fullscreenElement && document.exitFullscreen) {
+      document.exitFullscreen().catch(() => {});
+    }
+  }
+  drawWheel();
+}
+
+// ==========================================================================
+// FEATURE 3: SCOREBOARD & CLASSROOM LEADERBOARD
+// ==========================================================================
+function getStudentScore(name) {
+  const clean = parseMemberGender(name).name;
+  return studentScores[clean] !== undefined ? studentScores[clean] : (studentScores[name] || 0);
+}
+
+function adjustStudentScore(name, delta) {
+  const clean = parseMemberGender(name).name;
+  const current = getStudentScore(clean);
+  const nextScore = Math.max(0, current + delta);
+  studentScores[clean] = nextScore;
+  localStorage.setItem("lucky_wheel_scores", JSON.stringify(studentScores));
+  updateScoreboardTotalBadge();
+  renderScoreboard();
+}
+
+function updateScoreboardTotalBadge() {
+  const badge = document.getElementById("scoreboardTotalStars");
+  if (!badge) return;
+  const total = Object.values(studentScores).reduce((acc, v) => acc + (typeof v === "number" ? v : 0), 0);
+  badge.textContent = total;
+}
+
+function openScoreboardModal() {
+  renderScoreboard();
+  const modal = document.getElementById("scoreboardModalOverlay");
+  modal?.classList.remove("hidden");
+}
+
+function closeScoreboardModal() {
+  const modal = document.getElementById("scoreboardModalOverlay");
+  modal?.classList.add("hidden");
+}
+
+function switchScoreboardTab(tab) {
+  scoreboardActiveTab = tab;
+  const tabStudents = document.getElementById("scoreTabStudents");
+  const tabGroups = document.getElementById("scoreTabGroups");
+  const panelStudents = document.getElementById("scoreboardStudentsPanel");
+  const panelGroups = document.getElementById("scoreboardGroupsPanel");
+
+  if (tab === "groups") {
+    tabGroups?.classList.add("active");
+    tabStudents?.classList.remove("active");
+    panelStudents?.classList.add("hidden");
+    panelGroups?.classList.remove("hidden");
+  } else {
+    tabStudents?.classList.add("active");
+    tabGroups?.classList.remove("active");
+    panelStudents?.classList.remove("hidden");
+    panelGroups?.classList.add("hidden");
+  }
+}
+
+function renderScoreboard() {
+  updateScoreboardTotalBadge();
+  const studentsListEl = document.getElementById("scoreboardStudentsList");
+  const groupsGridEl = document.getElementById("scoreboardGroupsGrid");
+  if (!studentsListEl || !groupsGridEl) return;
+
+  // 1. Students Leaderboard
+  const studentMap = new Map();
+  namesList.forEach(raw => {
+    const clean = parseMemberGender(raw).name;
+    studentMap.set(clean, {
+      raw,
+      name: clean,
+      stars: getStudentScore(clean),
+      gender: parseMemberGender(raw).gender
+    });
+  });
+  Object.keys(studentScores).forEach(name => {
+    if (!studentMap.has(name)) {
+      studentMap.set(name, {
+        raw: name,
+        name,
+        stars: studentScores[name] || 0,
+        gender: "U"
+      });
+    }
+  });
+
+  const sortedStudents = Array.from(studentMap.values()).sort((a, b) => b.stars - a.stars);
+
+  studentsListEl.innerHTML = "";
+  if (sortedStudents.length === 0) {
+    studentsListEl.innerHTML = `<div class="empty-history">${TRANSLATIONS[currentLang].noWinnersYet}</div>`;
+  } else {
+    sortedStudents.forEach((student, index) => {
+      const rank = index + 1;
+      const rankBadge = rank === 1 ? "🥇" : rank === 2 ? "🥈" : rank === 3 ? "🥉" : `#${rank}`;
+      const rankClass = rank <= 3 ? `rank-${rank}` : "";
+      const genderIcon = student.gender === "M" ? "👦" : student.gender === "F" ? "👧" : "";
+
+      const row = document.createElement("div");
+      row.className = `scoreboard-row ${rankClass}`;
+      row.innerHTML = `
+        <span class="scoreboard-rank-badge">${rankBadge}</span>
+        <span class="scoreboard-student-name">
+          ${genderIcon ? `<span>${genderIcon}</span>` : ""}
+          <span>${escapeHtml(student.name)}</span>
+        </span>
+        <span class="scoreboard-stars-pill">⭐ ${student.stars}</span>
+        <div class="score-stepper-wrap">
+          <button class="score-stepper-btn minus" title="-1 Star">-</button>
+          <button class="score-stepper-btn plus" title="+1 Star">+</button>
+        </div>
+      `;
+      row.querySelector(".minus").addEventListener("click", () => adjustStudentScore(student.name, -1));
+      row.querySelector(".plus").addEventListener("click", () => adjustStudentScore(student.name, 1));
+      studentsListEl.appendChild(row);
+    });
+  }
+
+  // 2. Groups Leaderboard
+  groupsGridEl.innerHTML = "";
+  if (currentGeneratedTeams && currentGeneratedTeams.length > 0) {
+    currentGeneratedTeams.forEach((team) => {
+      let teamStars = 0;
+      team.members.forEach(m => {
+        teamStars += getStudentScore(m);
+      });
+
+      const card = document.createElement("div");
+      card.className = "scoreboard-group-card";
+      card.innerHTML = `
+        <div class="scoreboard-group-header">
+          <span class="scoreboard-group-title">${escapeHtml(team.title)}</span>
+          <span class="scoreboard-group-stars">⭐ ${teamStars}</span>
+        </div>
+        <div class="scoreboard-group-members">
+          ${team.members.map(m => escapeHtml(parseMemberGender(m).name)).join(", ")}
+        </div>
+      `;
+      groupsGridEl.appendChild(card);
+    });
+  } else {
+    groupsGridEl.innerHTML = `<div class="empty-history" style="grid-column: 1/-1;">${currentLang === "km" ? "មិនទាន់មានទិន្នន័យចែកក្រុមទេ" : "No generated teams yet"}</div>`;
+  }
+}
+
+function exportScoreboardCsv() {
+  const studentMap = new Map();
+  namesList.forEach(raw => {
+    const clean = parseMemberGender(raw).name;
+    studentMap.set(clean, { name: clean, stars: getStudentScore(clean), gender: parseMemberGender(raw).gender });
+  });
+  Object.keys(studentScores).forEach(name => {
+    if (!studentMap.has(name)) {
+      studentMap.set(name, { name, stars: studentScores[name] || 0, gender: "U" });
+    }
+  });
+
+  const sortedStudents = Array.from(studentMap.values()).sort((a, b) => b.stars - a.stars);
+  let csvContent = "\uFEFFRank,Student Name,Gender,Stars / Points\n";
+  sortedStudents.forEach((st, i) => {
+    const gText = st.gender === "M" ? "Male" : st.gender === "F" ? "Female" : "Unspecified";
+    csvContent += `"${i + 1}","${st.name.replace(/"/g, '""')}","${gText}","${st.stars}"\n`;
+  });
+
+  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `Classroom_Scoreboard_${new Date().toISOString().slice(0, 10)}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToastNotification(TRANSLATIONS[currentLang].copiedAlert);
+}
+
+function resetScoreboard() {
+  if (confirm(TRANSLATIONS[currentLang].scoresResetConfirm)) {
+    studentScores = {};
+    localStorage.removeItem("lucky_wheel_scores");
+    renderScoreboard();
+    showToastNotification("✅ " + TRANSLATIONS[currentLang].resetScores);
+  }
+}
+
+// ==========================================================================
+// FEATURE 2: PWA & OFFLINE SUPPORT
+// ==========================================================================
+function initPwaSupport() {
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("./sw.js?v=2.3").then(reg => {
+        console.log("ServiceWorker registered successfully:", reg.scope);
+      }).catch(err => {
+        console.warn("ServiceWorker registration failed:", err);
+      });
+    });
+  }
+
+  window.addEventListener("beforeinstallprompt", (e) => {
+    e.preventDefault();
+    deferredInstallPrompt = e;
+    const installBtn = document.getElementById("installAppBtn");
+    if (installBtn) {
+      installBtn.classList.remove("hidden");
+    }
+  });
+
+  const installBtn = document.getElementById("installAppBtn");
+  if (installBtn) {
+    installBtn.addEventListener("click", async () => {
+      if (deferredInstallPrompt) {
+        deferredInstallPrompt.prompt();
+        const { outcome } = await deferredInstallPrompt.userChoice;
+        if (outcome === "accepted") {
+          installBtn.classList.add("hidden");
+        }
+        deferredInstallPrompt = null;
+      }
+    });
+  }
+}
+
+// ==========================================================================
 // 14. INITIALIZATION
 // ==========================================================================
 document.addEventListener("DOMContentLoaded", () => {
   wheelCanvas = document.getElementById("wheelCanvas");
   wheelCtx = wheelCanvas.getContext("2d");
 
+  applyTheme(currentTheme);
   setLanguage(currentLang);
   populateClassSelector();
+  initPwaSupport();
 
   updateTextareaFromState();
   updateItemCount();
@@ -2006,6 +2515,36 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  // Feature 5: Theme Selector
+  const themeSelector = document.getElementById("themeSelector");
+  if (themeSelector) {
+    themeSelector.value = currentTheme;
+    themeSelector.addEventListener("change", (e) => applyTheme(e.target.value));
+  }
+
+  // Feature 4: Projector Mode
+  document.getElementById("projectorBtn")?.addEventListener("click", toggleProjectorMode);
+  document.getElementById("projectorExitBtn")?.addEventListener("click", toggleProjectorMode);
+
+  // Feature 3: Scoreboard & Leaderboard
+  document.getElementById("scoreboardBtn")?.addEventListener("click", openScoreboardModal);
+  document.getElementById("closeScoreboardModalBtn")?.addEventListener("click", closeScoreboardModal);
+  document.getElementById("closeScoreboardFooterBtn")?.addEventListener("click", closeScoreboardModal);
+  document.getElementById("scoreboardModalOverlay")?.addEventListener("click", (e) => {
+    if (e.target.id === "scoreboardModalOverlay") closeScoreboardModal();
+  });
+  document.getElementById("scoreTabStudents")?.addEventListener("click", () => switchScoreboardTab("students"));
+  document.getElementById("scoreTabGroups")?.addEventListener("click", () => switchScoreboardTab("groups"));
+  document.getElementById("exportScoreboardCsvBtn")?.addEventListener("click", exportScoreboardCsv);
+  document.getElementById("resetScoreboardBtn")?.addEventListener("click", resetScoreboard);
+
+  // Feature 1: Attendance Switcher & Toolbar
+  document.getElementById("viewTextBtn")?.addEventListener("click", () => switchSidebarTab("text"));
+  document.getElementById("viewAttendanceBtn")?.addEventListener("click", () => switchSidebarTab("attendance"));
+  document.getElementById("markAllPresentBtn")?.addEventListener("click", () => markAllStudentsAttendance(true));
+  document.getElementById("markAllAbsentBtn")?.addEventListener("click", () => markAllStudentsAttendance(false));
+  document.getElementById("attendanceSearchInput")?.addEventListener("input", updateAttendanceView);
+
   // Keyboard Shortcuts
   window.addEventListener("keydown", (e) => {
     if (e.target.tagName === "TEXTAREA" || e.target.tagName === "INPUT") return;
@@ -2014,9 +2553,13 @@ document.addEventListener("DOMContentLoaded", () => {
       if (!isSpinning && currentMode !== "team-maker") {
         spinWheel();
       }
+    } else if (e.code === "KeyP" || e.key === "p" || e.key === "P") {
+      toggleProjectorMode();
     } else if (e.code === "Escape") {
       hideWinnerModal();
       closeQrModal();
+      closeScoreboardModal();
+      if (isProjectorMode) toggleProjectorMode();
     }
   });
 
