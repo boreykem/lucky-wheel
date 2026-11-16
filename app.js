@@ -279,55 +279,78 @@ let groupsList = [
 
 function parseMemberGender(rawName) {
   if (!rawName) return { raw: "", name: "", gender: "U", icon: "" };
-  const str = rawName.trim();
-  let gender = "U";
-  let icon = "";
-  let cleanName = str;
+  let str = rawName.trim();
 
-  // Direct Emoji tags
+  // 1. Direct Emoji check
   if (str.includes("👦") || str.includes("👨")) {
-    gender = "M";
-    icon = "👦";
-    cleanName = str.replace(/[👦👨]/g, "").trim();
-    return { raw: str, name: cleanName || str, gender, icon };
+    const clean = str.replace(/[👦👨]/g, "").trim();
+    return { raw: rawName.trim(), name: clean || str, gender: "M", icon: "👦" };
   }
   if (str.includes("👧") || str.includes("👩")) {
-    gender = "F";
-    icon = "👧";
-    cleanName = str.replace(/[👧👩]/g, "").trim();
-    return { raw: str, name: cleanName || str, gender, icon };
+    const clean = str.replace(/[👧👩]/g, "").trim();
+    return { raw: rawName.trim(), name: clean || str, gender: "F", icon: "👧" };
   }
 
-  // Regex for bracketed / delimited markers at end of string
-  // Khmer: (ប), [ប], (ប្រុស), [ប្រុស] | English: (M), [M], (Male), [Male], (Boy), [Boy]
-  const endBracketFemale = /[\(\[\{](?:ស|ស្រី|F|Female|Girl)[\)\]\}]$/i;
-  const endBracketMale = /[\(\[\{](?:ប|ប្រុស|M|Male|Boy)[\)\]\}]$/i;
-  const commaOrDashFemale = /[,|\-\/]\s*(?:ស|ស្រី|F|Female|Girl)$/i;
-  const commaOrDashMale = /[,|\-\/]\s*(?:ប|ប្រុស|M|Male|Boy)$/i;
+  // 2. Remove leading row numbers e.g. '1. ', '01. ', '1) ', '1- ', '១. ', '២) '
+  const numMatch = str.match(/^([0-9០-៩]+[\.\)\-\/\t]\s*)/);
+  if (numMatch) {
+    str = str.substring(numMatch[1].length).trim();
+  }
 
-  if (endBracketFemale.test(str)) {
-    gender = "F";
-    icon = "👧";
-    cleanName = str.replace(endBracketFemale, "").trim();
-  } else if (endBracketMale.test(str)) {
-    gender = "M";
-    icon = "👦";
-    cleanName = str.replace(endBracketMale, "").trim();
-  } else if (commaOrDashFemale.test(str)) {
-    gender = "F";
-    icon = "👧";
-    cleanName = str.replace(commaOrDashFemale, "").trim();
-  } else if (commaOrDashMale.test(str)) {
-    gender = "M";
-    icon = "👦";
-    cleanName = str.replace(commaOrDashMale, "").trim();
+  // 3. Tab-separated columns (e.g. copied from Excel/Word tables: 'ជេត ភក្តី\tប្រុស')
+  if (str.includes("\t")) {
+    const parts = str.split("\t").map(p => p.trim()).filter(p => p.length > 0);
+    if (parts.length >= 2) {
+      const lastPart = parts[parts.length - 1];
+      if (/^(?:ភេទ[\s:]*)?(?:ស|ស្រី|f|female|girl)$/i.test(lastPart)) {
+        return { raw: rawName.trim(), name: parts[0], gender: "F", icon: "👧" };
+      }
+      if (/^(?:ភេទ[\s:]*)?(?:ប|ប្រុស|m|male|boy)$/i.test(lastPart)) {
+        return { raw: rawName.trim(), name: parts[0], gender: "M", icon: "👦" };
+      }
+    }
+  }
+
+  // 4. Prefix patterns at start (e.g. 'ប្រុស: ឈ្មោះ', 'ស្រី ឈ្មោះ', 'M: Name')
+  const prefixFemale = /^(?:ស្រី|ស|f|female|girl)[\s:|\-\/]+/i;
+  const prefixMale = /^(?:ប្រុស|ប|m|male|boy)[\s:|\-\/]+/i;
+  if (prefixFemale.test(str)) {
+    const clean = str.replace(prefixFemale, "").trim();
+    return { raw: rawName.trim(), name: clean || str, gender: "F", icon: "👧" };
+  }
+  if (prefixMale.test(str)) {
+    const clean = str.replace(prefixMale, "").trim();
+    return { raw: rawName.trim(), name: clean || str, gender: "M", icon: "👦" };
+  }
+
+  // 5. Universal suffix patterns (matches 'ជេត ភក្តី ប្រុស', 'យឿង ដាណែត ស្រី', '(ប្រុស)', '[ស្រី]', 'ភេទប្រុស', ', M', etc.)
+  const suffixFemaleRegex = /[\s\t,:\(\[\{\|\-\/]+(?:ភេទ[\s:]*)?(?:ស|ស្រី|f|female|girl)[\)\]\}]?$/i;
+  const suffixMaleRegex = /[\s\t,:\(\[\{\|\-\/]+(?:ភេទ[\s:]*)?(?:ប|ប្រុស|m|male|boy)[\)\]\}]?$/i;
+
+  if (suffixFemaleRegex.test(str)) {
+    const clean = str.replace(suffixFemaleRegex, "").trim();
+    return { raw: rawName.trim(), name: clean || str, gender: "F", icon: "👧" };
+  }
+  if (suffixMaleRegex.test(str)) {
+    const clean = str.replace(suffixMaleRegex, "").trim();
+    return { raw: rawName.trim(), name: clean || str, gender: "M", icon: "👦" };
+  }
+
+  // 6. Khmer titles detection (លោក, កុមារា, យុវជន vs កញ្ញា, អ្នកស្រី, អ្នកនាង, កុមារី, យុវតី)
+  const titleFemale = /^(?:កញ្ញា|អ្នកស្រី|អ្នកនាង|កុមារី|យុវតី)\s+/;
+  const titleMale = /^(?:លោក|កុមារា|យុវជន)\s+/;
+  if (titleFemale.test(str)) {
+    return { raw: rawName.trim(), name: str, gender: "F", icon: "👧" };
+  }
+  if (titleMale.test(str)) {
+    return { raw: rawName.trim(), name: str, gender: "M", icon: "👦" };
   }
 
   return {
-    raw: str,
-    name: cleanName || str,
-    gender,
-    icon
+    raw: rawName.trim(),
+    name: str,
+    gender: "U",
+    icon: ""
   };
 }
 
@@ -1166,31 +1189,44 @@ function generateTeams() {
     shuffleArray(females);
     shuffleArray(others);
 
-    // 1. Distribute males round-robin across groups
-    males.forEach((m, idx) => {
-      groups[idx % numGroups].push(m);
-    });
-
-    // 2. Distribute females prioritizing groups with fewer members to maintain balance
-    females.forEach(f => {
-      let minIdx = 0;
-      for (let i = 1; i < numGroups; i++) {
-        if (groups[i].length < groups[minIdx].length) {
-          minIdx = i;
+    // 1. Smart gender-balanced distribution
+    // Pick the group with smallest total size; tie-break by fewest of target gender
+    function getBestGroup(targetGender) {
+      let bestIdx = 0;
+      for (let i = 1; i < groups.length; i++) {
+        if (groups[i].length < groups[bestIdx].length) {
+          bestIdx = i;
+        } else if (groups[i].length === groups[bestIdx].length) {
+          if (targetGender) {
+            const countI = groups[i].filter(x => parseMemberGender(x).gender === targetGender).length;
+            const countBest = groups[bestIdx].filter(x => parseMemberGender(x).gender === targetGender).length;
+            if (countI < countBest) {
+              bestIdx = i;
+            }
+          }
         }
       }
-      groups[minIdx].push(f);
+      return bestIdx;
+    }
+
+    // Distribute larger gender list first, then smaller gender list, then others
+    const [firstList, secondList, firstG, secondG] = males.length >= females.length 
+      ? [males, females, 'M', 'F'] 
+      : [females, males, 'F', 'M'];
+
+    firstList.forEach(item => {
+      const idx = getBestGroup(firstG);
+      groups[idx].push(item);
     });
 
-    // 3. Distribute others to smallest groups
-    others.forEach(o => {
-      let minIdx = 0;
-      for (let i = 1; i < numGroups; i++) {
-        if (groups[i].length < groups[minIdx].length) {
-          minIdx = i;
-        }
-      }
-      groups[minIdx].push(o);
+    secondList.forEach(item => {
+      const idx = getBestGroup(secondG);
+      groups[idx].push(item);
+    });
+
+    others.forEach(item => {
+      const idx = getBestGroup(null);
+      groups[idx].push(item);
     });
   } else {
     const shuffled = [...members];
@@ -1649,11 +1685,35 @@ function switchMode(newMode) {
 }
 
 function updateTeamMemberCount() {
-  const count = document.getElementById("teamNamesInput").value
+  const teamInput = document.getElementById("teamNamesInput");
+  if (!teamInput) return;
+
+  const rawMembers = teamInput.value
     .split("\n")
     .map(s => s.trim())
-    .filter(s => s.length > 0).length;
-  document.getElementById("teamMembersCountBadge").textContent = count;
+    .filter(s => s.length > 0);
+
+  let boyCount = 0;
+  let girlCount = 0;
+  rawMembers.forEach(n => {
+    const g = parseMemberGender(n).gender;
+    if (g === "M") boyCount++;
+    else if (g === "F") girlCount++;
+  });
+
+  const countBadge = document.getElementById("teamMembersCountBadge");
+  const maleBadge = document.getElementById("teamMaleBadge");
+  const femaleBadge = document.getElementById("teamFemaleBadge");
+
+  if (countBadge) countBadge.textContent = rawMembers.length;
+  if (maleBadge) {
+    maleBadge.textContent = `👦 ${boyCount}`;
+    maleBadge.style.display = boyCount > 0 ? "inline-flex" : "none";
+  }
+  if (femaleBadge) {
+    femaleBadge.textContent = `👧 ${girlCount}`;
+    femaleBadge.style.display = girlCount > 0 ? "inline-flex" : "none";
+  }
 }
 
 // ==========================================================================
