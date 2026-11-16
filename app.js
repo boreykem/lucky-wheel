@@ -474,6 +474,18 @@ let wheelCtx = null;
 let currentRotation = 0;
 let isSpinning = false;
 let lastTickAngle = 0;
+let lastTickSoundTime = 0;
+
+// High-performance offscreen rendering cache buffer (60fps smooth with 50+ students)
+let cachedWheelCanvas = null;
+let cachedWheelCtx = null;
+let wheelCacheValid = false;
+let wheelItemsSignature = "";
+
+function invalidateWheelCache() {
+  wheelCacheValid = false;
+  wheelItemsSignature = "";
+}
 
 // Countdown Timer State
 let countdownTimerId = null;
@@ -498,6 +510,9 @@ function initAudio() {
 
 function playTickSound() {
   if (!soundEnabled) return;
+  const now = performance.now();
+  if (now - lastTickSoundTime < 32) return; // Prevent WebAudio node overload when spinning fast with 50+ slices
+  lastTickSoundTime = now;
   try {
     initAudio();
     if (!audioCtx) return;
@@ -691,6 +706,7 @@ function setActiveItems(items) {
   }
   updateTextareaFromState();
   updateItemCount();
+  invalidateWheelCache();
   drawWheel();
 }
 
@@ -740,33 +756,46 @@ function updateItemCount() {
   updateScoreboardTotalBadge();
 }
 
-function drawWheel() {
-  if (!wheelCanvas || !wheelCtx) return;
+/**
+ * Pre-renders the entire wheel into an offscreen canvas buffer.
+ * Slices, borders, shadows, text labels, and pins are drawn ONCE here,
+ * allowing 60FPS / 120FPS ultra-fluid rotation during spinning even with 50-100+ students.
+ */
+function renderWheelBuffer() {
+  if (!wheelCanvas) return;
 
-  const items = getWheelItems();
   const width = wheelCanvas.width;
   const height = wheelCanvas.height;
   const centerX = width / 2;
   const centerY = height / 2;
   const radius = width / 2 - 20;
 
-  wheelCtx.clearRect(0, 0, width, height);
+  if (!cachedWheelCanvas) {
+    cachedWheelCanvas = document.createElement("canvas");
+  }
+  cachedWheelCanvas.width = width;
+  cachedWheelCanvas.height = height;
+  cachedWheelCtx = cachedWheelCanvas.getContext("2d");
+
+  const ctx = cachedWheelCtx;
+  ctx.clearRect(0, 0, width, height);
 
   const baseScale = width / 600;
+  const items = getWheelItems();
 
   if (items.length === 0) {
-    wheelCtx.beginPath();
-    wheelCtx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
-    wheelCtx.fillStyle = "#1e293b";
-    wheelCtx.fill();
-    wheelCtx.lineWidth = Math.round(6 * baseScale);
-    wheelCtx.strokeStyle = "#334155";
-    wheelCtx.stroke();
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+    ctx.fillStyle = "#1e293b";
+    ctx.fill();
+    ctx.lineWidth = Math.round(6 * baseScale);
+    ctx.strokeStyle = "#334155";
+    ctx.stroke();
 
-    wheelCtx.fillStyle = "#94a3b8";
-    wheelCtx.font = `bold ${Math.round(20 * baseScale)}px 'Kantumruy Pro', Outfit, sans-serif`;
-    wheelCtx.textAlign = "center";
-    wheelCtx.textBaseline = "middle";
+    ctx.fillStyle = "#94a3b8";
+    ctx.font = `bold ${Math.round(20 * baseScale)}px 'Kantumruy Pro', Outfit, sans-serif`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
 
     let emptyMsg = currentLang === "km" ? "សូមបញ្ចូលឈ្មោះ..." : "Add names to spin...";
     if (currentMode === "spin-names") {
@@ -778,16 +807,16 @@ function drawWheel() {
         emptyMsg = currentLang === "km" ? "សិស្សទាំងអស់ត្រូវបានដាក់អវត្តមាន" : "All students marked absent";
       }
     }
-    wheelCtx.fillText(emptyMsg, centerX, centerY);
+    ctx.fillText(emptyMsg, centerX, centerY);
+    wheelCacheValid = true;
     return;
   }
 
   const sliceAngle = (2 * Math.PI) / items.length;
   const palette = THEME_PALETTES[currentTheme] || THEME_PALETTES["theme-neon"];
 
-  wheelCtx.save();
-  wheelCtx.translate(centerX, centerY);
-  wheelCtx.rotate(currentRotation);
+  ctx.save();
+  ctx.translate(centerX, centerY);
 
   // 1. Draw Slices
   for (let i = 0; i < items.length; i++) {
@@ -795,52 +824,56 @@ function drawWheel() {
     const endAngle = startAngle + sliceAngle;
     const color = palette.slices[i % palette.slices.length];
 
-    wheelCtx.beginPath();
-    wheelCtx.moveTo(0, 0);
-    wheelCtx.arc(0, 0, radius, startAngle, endAngle);
-    wheelCtx.closePath();
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.arc(0, 0, radius, startAngle, endAngle);
+    ctx.closePath();
 
-    wheelCtx.fillStyle = color;
-    wheelCtx.fill();
+    ctx.fillStyle = color;
+    ctx.fill();
 
-    wheelCtx.lineWidth = Math.max(2, Math.round(2.5 * baseScale));
-    wheelCtx.strokeStyle = "#0f172a";
-    wheelCtx.stroke();
+    // Thinner borders for 50+ items so slice color is not overtaken by borders
+    const borderLineWidth = items.length > 50 ? 1.5 : items.length > 30 ? 2 : 2.5;
+    ctx.lineWidth = Math.max(1, Math.round(borderLineWidth * baseScale));
+    ctx.strokeStyle = "#0f172a";
+    ctx.stroke();
 
     // 2. Draw Text in Slice (Kantumruy Pro)
-    wheelCtx.save();
+    ctx.save();
     const textAngle = startAngle + sliceAngle / 2;
-    wheelCtx.rotate(textAngle);
-    wheelCtx.textAlign = "right";
-    wheelCtx.textBaseline = "middle";
-    wheelCtx.fillStyle = "#ffffff";
-    wheelCtx.shadowColor = "rgba(0, 0, 0, 0.75)";
-    wheelCtx.shadowBlur = Math.round(5 * baseScale);
+    ctx.rotate(textAngle);
+    ctx.textAlign = "right";
+    ctx.textBaseline = "middle";
+    ctx.fillStyle = "#ffffff";
+    ctx.shadowColor = "rgba(0, 0, 0, 0.85)";
+    ctx.shadowBlur = Math.round(4 * baseScale);
 
-    const baseFont = items.length > 36 ? 11 : items.length > 24 ? 13 : items.length > 14 ? 16 : 19;
+    // Font size scales cleanly with number of items
+    const baseFont = items.length > 60 ? 9 : items.length > 45 ? 10.5 : items.length > 30 ? 12.5 : items.length > 16 ? 15 : 19;
     const fontSize = Math.round(baseFont * baseScale);
-    wheelCtx.font = `600 ${fontSize}px 'Kantumruy Pro', Outfit, sans-serif`;
+    ctx.font = `600 ${fontSize}px 'Kantumruy Pro', Outfit, sans-serif`;
 
     const parsed = parseMemberGender(items[i]);
-    const prizeAvatar = extractPrizeOrAvatar(items[i]);
     let itemText = parsed.icon ? `${parsed.icon} ${parsed.name}` : parsed.raw;
-    if (itemText.length > 24) {
-      itemText = itemText.substring(0, 22) + "...";
+    const maxChars = items.length > 50 ? 18 : 24;
+    if (itemText.length > maxChars) {
+      itemText = itemText.substring(0, maxChars - 2) + "...";
     }
 
-    const textOffset = Math.round(32 * baseScale);
-    wheelCtx.fillText(itemText, radius - textOffset, 0);
-    wheelCtx.restore();
+    const textOffset = Math.round((items.length > 45 ? 24 : 32) * baseScale);
+    ctx.fillText(itemText, radius - textOffset, 0);
+    ctx.restore();
   }
 
   // 3. Draw Outer Rim
-  wheelCtx.beginPath();
-  wheelCtx.arc(0, 0, radius, 0, 2 * Math.PI);
-  wheelCtx.lineWidth = Math.round(11 * baseScale);
-  wheelCtx.strokeStyle = palette.rim;
-  wheelCtx.stroke();
+  ctx.beginPath();
+  ctx.arc(0, 0, radius, 0, 2 * Math.PI);
+  ctx.lineWidth = Math.round(11 * baseScale);
+  ctx.strokeStyle = palette.rim;
+  ctx.stroke();
 
-  const totalPins = Math.max(12, items.length);
+  // 4. Draw Pins (capped at 60 for clean aesthetics)
+  const totalPins = Math.min(Math.max(12, items.length), 60);
   const pinStep = (2 * Math.PI) / totalPins;
   for (let p = 0; p < totalPins; p++) {
     const pinAngle = p * pinStep;
@@ -848,20 +881,45 @@ function drawWheel() {
     const pinX = Math.cos(pinAngle) * (radius - pinOffset);
     const pinY = Math.sin(pinAngle) * (radius - pinOffset);
 
-    wheelCtx.beginPath();
-    wheelCtx.arc(pinX, pinY, Math.round(4.5 * baseScale), 0, 2 * Math.PI);
-    wheelCtx.fillStyle = palette.pin;
-    wheelCtx.fill();
-    wheelCtx.lineWidth = 1.2;
-    wheelCtx.strokeStyle = "#ffffff";
-    wheelCtx.stroke();
+    ctx.beginPath();
+    ctx.arc(pinX, pinY, Math.round(4.5 * baseScale), 0, 2 * Math.PI);
+    ctx.fillStyle = palette.pin;
+    ctx.fill();
+    ctx.lineWidth = 1.2;
+    ctx.strokeStyle = "#ffffff";
+    ctx.stroke();
   }
 
+  ctx.restore();
+  wheelCacheValid = true;
+}
+
+function drawWheel() {
+  if (!wheelCanvas || !wheelCtx) return;
+
+  const width = wheelCanvas.width;
+  const height = wheelCanvas.height;
+  const centerX = width / 2;
+  const centerY = height / 2;
+
+  const items = getWheelItems();
+  const currentKey = `${items.length}_${currentTheme}_${currentLang}_${genderWheelFilter}_${width}x${height}_${items[0] || ''}_${items[items.length - 1] || ''}`;
+
+  if (!wheelCacheValid || wheelItemsSignature !== currentKey || !cachedWheelCanvas) {
+    wheelItemsSignature = currentKey;
+    renderWheelBuffer();
+  }
+
+  wheelCtx.clearRect(0, 0, width, height);
+  wheelCtx.save();
+  wheelCtx.translate(centerX, centerY);
+  wheelCtx.rotate(currentRotation);
+  wheelCtx.drawImage(cachedWheelCanvas, -centerX, -centerY);
   wheelCtx.restore();
 }
 
 // ==========================================================================
-// 6. WHEEL SPINNING ENGINE & PHYSICS
+// 6. WHEEL SPINNING ENGINE & PHYSICS (FAST, FLUID & SUSPENSEFUL ROTATIONS)
 // ==========================================================================
 function spinWheel() {
   const items = getWheelItems();
@@ -889,22 +947,26 @@ function spinWheel() {
   document.getElementById("spinCenterBtn").disabled = true;
   document.getElementById("spinActionBtn").disabled = true;
 
-  const fullRotations = (5 + Math.random() * 4) * 2 * Math.PI;
+  // Fast & energetic spin: 14 to 20 full rotations!
+  const fullRotations = (14 + Math.random() * 6) * 2 * Math.PI;
   const randomOffset = Math.random() * 2 * Math.PI;
   const targetRotation = currentRotation + fullRotations + randomOffset;
 
   const startRotation = currentRotation;
-  const spinDuration = 4500 + Math.random() * 1500;
+  // Longer, exciting suspense duration: 7.0s - 8.5s
+  const spinDuration = 7000 + Math.random() * 1500;
   const startTime = performance.now();
 
   const pointerEl = document.querySelector(".wheel-pointer");
   const sliceAngle = (2 * Math.PI) / items.length;
+  let lastPointerTickTime = 0;
 
   function animate(currentTime) {
     const elapsed = currentTime - startTime;
     const progress = Math.min(elapsed / spinDuration, 1);
 
-    const easeOut = 1 - Math.pow(1 - progress, 3);
+    // Quartic ease-out: ultra-fast initial blast, followed by long, suspenseful deceleration
+    const easeOut = 1 - Math.pow(1 - progress, 4);
     currentRotation = startRotation + (targetRotation - startRotation) * easeOut;
 
     const pointerAngle = 0;
@@ -915,9 +977,11 @@ function spinWheel() {
     if (currentSlice !== lastTickAngle) {
       lastTickAngle = currentSlice;
       playTickSound();
-      if (pointerEl) {
+      // Throttle pointer deflection to avoid DOM recalc thrashing
+      if (pointerEl && currentTime - lastPointerTickTime > 40) {
+        lastPointerTickTime = currentTime;
         pointerEl.style.transform = "rotate(-14deg)";
-        setTimeout(() => { if (pointerEl) pointerEl.style.transform = "rotate(0deg)"; }, 45);
+        setTimeout(() => { if (pointerEl) pointerEl.style.transform = "rotate(0deg)"; }, 35);
       }
     }
 
@@ -926,6 +990,7 @@ function spinWheel() {
     if (progress < 1) {
       requestAnimationFrame(animate);
     } else {
+      if (pointerEl) pointerEl.style.transform = "rotate(0deg)";
       stopDrumroll();
       isSpinning = false;
       document.getElementById("spinCenterBtn").disabled = false;
@@ -960,22 +1025,25 @@ function startPairDraw() {
   const pairBtn = document.getElementById("pairDrawBtn");
   if (pairBtn) pairBtn.disabled = true;
 
-  const fullRotations = (5 + Math.random() * 4) * 2 * Math.PI;
+  // Fast & energetic spin: 14 to 20 full rotations!
+  const fullRotations = (14 + Math.random() * 6) * 2 * Math.PI;
   const randomOffset = Math.random() * 2 * Math.PI;
   const targetRotation = currentRotation + fullRotations + randomOffset;
 
   const startRotation = currentRotation;
-  const spinDuration = 4500 + Math.random() * 1500;
+  // Longer, exciting suspense duration: 7.0s - 8.5s
+  const spinDuration = 7000 + Math.random() * 1500;
   const startTime = performance.now();
 
   const pointerEl = document.querySelector(".wheel-pointer");
   const items = getWheelItems();
   const sliceAngle = (2 * Math.PI) / Math.max(1, items.length);
+  let lastPointerTickTime = 0;
 
   function animate(currentTime) {
     const elapsed = currentTime - startTime;
     const progress = Math.min(elapsed / spinDuration, 1);
-    const easeOut = 1 - Math.pow(1 - progress, 3);
+    const easeOut = 1 - Math.pow(1 - progress, 4);
     currentRotation = startRotation + (targetRotation - startRotation) * easeOut;
 
     const pointerAngle = 0;
@@ -986,9 +1054,10 @@ function startPairDraw() {
     if (currentSlice !== lastTickAngle) {
       lastTickAngle = currentSlice;
       playTickSound();
-      if (pointerEl) {
+      if (pointerEl && currentTime - lastPointerTickTime > 40) {
+        lastPointerTickTime = currentTime;
         pointerEl.style.transform = "rotate(-14deg)";
-        setTimeout(() => { if (pointerEl) pointerEl.style.transform = "rotate(0deg)"; }, 45);
+        setTimeout(() => { if (pointerEl) pointerEl.style.transform = "rotate(0deg)"; }, 35);
       }
     }
 
@@ -997,6 +1066,7 @@ function startPairDraw() {
     if (progress < 1) {
       requestAnimationFrame(animate);
     } else {
+      if (pointerEl) pointerEl.style.transform = "rotate(0deg)";
       stopDrumroll();
       isSpinning = false;
       document.getElementById("spinCenterBtn").disabled = false;
@@ -1927,6 +1997,7 @@ function toggleStudentAttendance(rawName) {
   localStorage.setItem("lucky_wheel_absent", JSON.stringify([...absentSet]));
   updateAttendanceView();
   updateItemCount();
+  invalidateWheelCache();
   drawWheel();
 }
 
@@ -1939,6 +2010,7 @@ function markAllStudentsAttendance(present) {
   localStorage.setItem("lucky_wheel_absent", JSON.stringify([...absentSet]));
   updateAttendanceView();
   updateItemCount();
+  invalidateWheelCache();
   drawWheel();
 }
 
@@ -1978,6 +2050,7 @@ function applyTheme(themeKey) {
   const themeSelector = document.getElementById("themeSelector");
   if (themeSelector) themeSelector.value = themeKey;
 
+  invalidateWheelCache();
   drawWheel();
 }
 
@@ -2196,7 +2269,7 @@ function resetScoreboard() {
 function initPwaSupport() {
   if ("serviceWorker" in navigator) {
     window.addEventListener("load", () => {
-      navigator.serviceWorker.register("./sw.js?v=2.6").then(reg => {
+      navigator.serviceWorker.register("./sw.js?v=2.7").then(reg => {
         console.log("ServiceWorker registered successfully:", reg.scope);
       }).catch(err => {
         console.warn("ServiceWorker registration failed:", err);
@@ -2313,6 +2386,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
     updateItemCount();
+    invalidateWheelCache();
     drawWheel();
   });
 
@@ -2353,6 +2427,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     updateTextareaFromState();
     updateItemCount();
+    invalidateWheelCache();
     drawWheel();
   });
 
@@ -2402,6 +2477,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (filterAllBtn) filterAllBtn.classList.toggle("active", filter === "all");
     if (filterMaleBtn) filterMaleBtn.classList.toggle("active", filter === "M");
     if (filterFemaleBtn) filterFemaleBtn.classList.toggle("active", filter === "F");
+    invalidateWheelCache();
     drawWheel();
   }
 
@@ -2568,5 +2644,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  window.addEventListener("resize", drawWheel);
+  window.addEventListener("resize", () => {
+    invalidateWheelCache();
+    drawWheel();
+  });
 });
