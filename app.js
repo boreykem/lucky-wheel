@@ -92,6 +92,11 @@ const TRANSLATIONS = {
     filterFemale: "សិស្សស្រី",
     pairDraw: "ចាប់ជាគូ (👫)",
     pairDrawTitle: "🎉 គូដែលត្រូវបានជ្រើសរើស (Pair Draw)៖",
+    pairStage1Boy: "🎯 វគ្គទី ១/២៖ កំពុងបង្វិលរើសសិស្សប្រុស... 👦",
+    pairWonBoy: "✅ វគ្គទី ១៖ ជ្រើសបានសិស្សប្រុស 👦 ",
+    pairStage2Girl: "🎯 វគ្គទី ២/២៖ កំពុងបង្វិលរើសសិស្សស្រី... 👧",
+    pairWonGirl: "✅ វគ្គទី ២៖ ជ្រើសបានសិស្សស្រី 👧 ",
+    pairMatchedSuccess: "🎉 ផ្គូផ្គងជោគជ័យ៖ ",
     genderBalanceToggle: "⚖️ ធានាតុល្យភាពយេនឌ័រ (ស្មើប្រុស/ស្រីក្នុងគ្រប់ក្រុម)",
     genderTip: "សម្គាល់យេនឌ័រ៖ (ប)/(M) = ប្រុស, (ស)/(F) = ស្រី",
     needBoyAndGirlForPair: "សូមបញ្ចូលឈ្មោះប្រុស និងស្រីយ៉ាងហោចណាស់ម្នាក់ដើម្បីចាប់ជាគូ!",
@@ -211,6 +216,11 @@ const TRANSLATIONS = {
     filterFemale: "Girls",
     pairDraw: "Pair Draw (👫)",
     pairDrawTitle: "🎉 Selected Pair (Boy & Girl):",
+    pairStage1Boy: "🎯 Round 1/2: Spinning for Boy... 👦",
+    pairWonBoy: "✅ Round 1: Selected Boy 👦 ",
+    pairStage2Girl: "🎯 Round 2/2: Spinning for Girl... 👧",
+    pairWonGirl: "✅ Round 2: Selected Girl 👧 ",
+    pairMatchedSuccess: "🎉 Pair Matched: ",
     genderBalanceToggle: "⚖️ Gender-Balanced Teams (Equal Boy/Girl ratio)",
     genderTip: "Tag gender: (M)/(ប) = Male, (F)/(ស) = Female",
     needBoyAndGirlForPair: "Please have at least 1 male and 1 female to draw a pair!",
@@ -1002,49 +1012,29 @@ function spinWheel() {
   requestAnimationFrame(animate);
 }
 
-function startPairDraw() {
-  if (currentMode !== "spin-names") {
-    switchMode("spin-names");
-  }
+function calculateTargetRotationForIndex(targetIdx, totalItems, fromRotation, minRotations = 10) {
+  const sliceAngle = (2 * Math.PI) / totalItems;
+  const midAngle = (targetIdx + 0.5) * sliceAngle;
+  const minTarget = fromRotation + minRotations * 2 * Math.PI;
+  const k = Math.ceil((minTarget + midAngle) / (2 * Math.PI));
+  // Slight natural variation within middle 50% of the slice
+  const randomOffset = (Math.random() - 0.5) * 0.5 * sliceAngle;
+  return 2 * k * Math.PI - (midAngle + randomOffset);
+}
 
-  const males = namesList.filter(n => parseMemberGender(n).gender === "M");
-  const females = namesList.filter(n => parseMemberGender(n).gender === "F");
-
-  if (males.length === 0 || females.length === 0) {
-    alert(TRANSLATIONS[currentLang].needBoyAndGirlForPair);
-    return;
-  }
-  if (isSpinning) return;
-
-  initAudio();
-  isSpinning = true;
-  startDrumroll();
-
-  document.getElementById("spinCenterBtn").disabled = true;
-  document.getElementById("spinActionBtn").disabled = true;
-  const pairBtn = document.getElementById("pairDrawBtn");
-  if (pairBtn) pairBtn.disabled = true;
-
-  // Fast & energetic spin: 14 to 20 full rotations!
-  const fullRotations = (14 + Math.random() * 6) * 2 * Math.PI;
-  const randomOffset = Math.random() * 2 * Math.PI;
-  const targetRotation = currentRotation + fullRotations + randomOffset;
-
-  const startRotation = currentRotation;
-  // Longer, exciting suspense duration: 7.0s - 8.5s
-  const spinDuration = 7000 + Math.random() * 1500;
+function animateSpinToRotation(targetRot, duration, onComplete) {
+  const startRot = currentRotation;
   const startTime = performance.now();
-
   const pointerEl = document.querySelector(".wheel-pointer");
   const items = getWheelItems();
   const sliceAngle = (2 * Math.PI) / Math.max(1, items.length);
   let lastPointerTickTime = 0;
 
-  function animate(currentTime) {
+  function step(currentTime) {
     const elapsed = currentTime - startTime;
-    const progress = Math.min(elapsed / spinDuration, 1);
+    const progress = Math.min(elapsed / duration, 1);
     const easeOut = 1 - Math.pow(1 - progress, 4);
-    currentRotation = startRotation + (targetRotation - startRotation) * easeOut;
+    currentRotation = startRot + (targetRot - startRot) * easeOut;
 
     const pointerAngle = 0;
     const normalizedAngle = (pointerAngle - currentRotation) % (2 * Math.PI);
@@ -1064,29 +1054,137 @@ function startPairDraw() {
     drawWheel();
 
     if (progress < 1) {
-      requestAnimationFrame(animate);
+      requestAnimationFrame(step);
     } else {
       if (pointerEl) pointerEl.style.transform = "rotate(0deg)";
-      stopDrumroll();
-      isSpinning = false;
-      document.getElementById("spinCenterBtn").disabled = false;
-      document.getElementById("spinActionBtn").disabled = false;
-      if (pairBtn) pairBtn.disabled = false;
-
-      // Select 1 random male and 1 random female
-      const selectedBoy = males[Math.floor(Math.random() * males.length)];
-      const selectedGirl = females[Math.floor(Math.random() * females.length)];
-
-      playWinSound();
-      launchConfetti();
-
-      const pairHistoryLabel = `👫 ${parseMemberGender(selectedBoy).name} & ${parseMemberGender(selectedGirl).name}`;
-      addToHistory(pairHistoryLabel);
-      showPairWinnerModal(selectedBoy, selectedGirl);
+      if (typeof onComplete === "function") {
+        onComplete();
+      }
     }
   }
 
-  requestAnimationFrame(animate);
+  requestAnimationFrame(step);
+}
+
+function startPairDraw() {
+  if (currentMode !== "spin-names") {
+    switchMode("spin-names");
+  }
+
+  // Ensure filter is set to 'all' so both boys and girls are present on the wheel
+  if (genderWheelFilter !== "all") {
+    genderWheelFilter = "all";
+    const filterAllBtn = document.getElementById("filterAllBtn");
+    const filterMaleBtn = document.getElementById("filterMaleBtn");
+    const filterFemaleBtn = document.getElementById("filterFemaleBtn");
+    if (filterAllBtn) filterAllBtn.classList.add("active");
+    if (filterMaleBtn) filterMaleBtn.classList.remove("active");
+    if (filterFemaleBtn) filterFemaleBtn.classList.remove("active");
+    invalidateWheelCache();
+    drawWheel();
+  }
+
+  const items = getWheelItems();
+  const maleEntries = [];
+  const femaleEntries = [];
+
+  items.forEach((item, idx) => {
+    const parsed = parseMemberGender(item);
+    if (parsed.gender === "M") {
+      maleEntries.push({ raw: item, idx, name: parsed.name });
+    } else if (parsed.gender === "F") {
+      femaleEntries.push({ raw: item, idx, name: parsed.name });
+    }
+  });
+
+  if (maleEntries.length === 0 || femaleEntries.length === 0) {
+    alert(TRANSLATIONS[currentLang].needBoyAndGirlForPair);
+    return;
+  }
+  if (isSpinning) return;
+
+  initAudio();
+  isSpinning = true;
+
+  document.getElementById("spinCenterBtn").disabled = true;
+  document.getElementById("spinActionBtn").disabled = true;
+  const pairBtn = document.getElementById("pairDrawBtn");
+  if (pairBtn) pairBtn.disabled = true;
+
+  // Pick target boy and target girl randomly
+  const targetBoy = maleEntries[Math.floor(Math.random() * maleEntries.length)];
+  const targetGirl = femaleEntries[Math.floor(Math.random() * femaleEntries.length)];
+
+  const banner = document.getElementById("pairDrawBanner");
+  const bannerIcon = document.getElementById("pairBannerIcon");
+  const bannerText = document.getElementById("pairBannerText");
+
+  function setBanner(icon, text, stageClass) {
+    if (!banner) return;
+    banner.className = `pair-draw-banner ${stageClass || ""}`;
+    if (bannerIcon) bannerIcon.textContent = icon;
+    if (bannerText) bannerText.textContent = text;
+    banner.classList.remove("hidden");
+  }
+
+  function hideBanner() {
+    if (banner) banner.classList.add("hidden");
+  }
+
+  // ==========================================
+  // STAGE 1: SPIN FOR BOY (សិស្សប្រុស 👦)
+  // ==========================================
+  const t = TRANSLATIONS[currentLang];
+  setBanner("👦", t.pairStage1Boy, "stage-boy");
+
+  startDrumroll();
+  // Target rotation precisely pointing at targetBoy.idx with 12 to 15 full turns
+  const boyTargetRot = calculateTargetRotationForIndex(targetBoy.idx, items.length, currentRotation, 12 + Math.floor(Math.random() * 4));
+  const spinDuration1 = 4800 + Math.random() * 800;
+
+  animateSpinToRotation(boyTargetRot, spinDuration1, () => {
+    stopDrumroll();
+    playWinSound();
+    if (typeof confetti === "function") {
+      confetti({ particleCount: 45, spread: 50, origin: { x: 0.85, y: 0.5 } });
+    }
+
+    setBanner("👦", `${t.pairWonBoy}${targetBoy.name}!`, "stage-boy");
+
+    // Pause 1.5s so audience can clearly see the pointer stopped on the male student
+    setTimeout(() => {
+      // ==========================================
+      // STAGE 2: SPIN FOR GIRL (សិស្សស្រី 👧)
+      // ==========================================
+      setBanner("👧", t.pairStage2Girl, "stage-girl");
+
+      startDrumroll();
+      // Target rotation precisely pointing at targetGirl.idx with 12 to 15 full turns from currentRotation
+      const girlTargetRot = calculateTargetRotationForIndex(targetGirl.idx, items.length, currentRotation, 12 + Math.floor(Math.random() * 4));
+      const spinDuration2 = 5200 + Math.random() * 800;
+
+      animateSpinToRotation(girlTargetRot, spinDuration2, () => {
+        stopDrumroll();
+        playWinSound();
+        launchConfetti();
+
+        setBanner("👫", `${t.pairMatchedSuccess}👦 ${targetBoy.name} & 👧 ${targetGirl.name}!`, "stage-success");
+
+        // Pause 1.2s then open the Grand Pair Winner Modal
+        setTimeout(() => {
+          hideBanner();
+          isSpinning = false;
+          document.getElementById("spinCenterBtn").disabled = false;
+          document.getElementById("spinActionBtn").disabled = false;
+          if (pairBtn) pairBtn.disabled = false;
+
+          const pairHistoryLabel = `👫 ${targetBoy.name} & ${targetGirl.name}`;
+          addToHistory(pairHistoryLabel);
+          showPairWinnerModal(targetBoy.raw, targetGirl.raw);
+        }, 1300);
+      });
+    }, 1500);
+  });
 }
 
 function finishSpin() {
@@ -2269,7 +2367,7 @@ function resetScoreboard() {
 function initPwaSupport() {
   if ("serviceWorker" in navigator) {
     window.addEventListener("load", () => {
-      navigator.serviceWorker.register("./sw.js?v=2.8").then(reg => {
+      navigator.serviceWorker.register("./sw.js?v=2.9").then(reg => {
         console.log("ServiceWorker registered successfully:", reg.scope);
       }).catch(err => {
         console.warn("ServiceWorker registration failed:", err);
